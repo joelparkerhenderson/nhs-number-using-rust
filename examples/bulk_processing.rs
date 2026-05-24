@@ -62,10 +62,10 @@ fn main() {
     // self-checking: if the parser's behaviour ever changes, the counts at
     // the bottom will no longer match and the `assert_eq!` calls will fire.
     let inputs: [&str; 6] = [
-        "999 123 4560", // valid — testable range, canonical format
-        "9991234560",   // valid — same number, tight format (no spaces)
+        "999 100 0003", // valid — testable range, canonical format
+        "9991000003",   // valid — same number, tight format (no spaces)
         "943 476 5919", // valid — the Wikipedia reference number
-        "999 123 4561", // invalid checksum — last digit flipped from 0 to 1
+        "999 100 0004", // invalid checksum — last digit flipped from 3 to 4
         "012-345-6789", // unparseable — hyphen separators not supported
         "hello world!", // unparseable — not even close to digits
     ];

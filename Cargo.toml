@@ -1,6 +1,6 @@
 [package]
 name = "nhs-number"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 authors = ["Joel Parker Henderson <joel.henderson@wales.nhs.uk>"]
 description = "National Health Service (NHS) number for NHS England, NHS Wales, NHS Isle of Man."

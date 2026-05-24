@@ -36,7 +36,7 @@ Some callers already have a `[i8; 10]` and do not want to build an
 prefer dot-call syntax. The two forms always return the same result:
 
 ```rust
-let d = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+let d = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
 let n = nhs_number::NHSNumber::new(d);
 
 assert_eq!(n.calculate_check_digit(),
@@ -86,7 +86,9 @@ newtype and implement the two traits manually using `Display` and `FromStr`.
 
 Multiply each of the first nine digits by decreasing weights (10, 9, …, 2),
 sum, take modulo 11, subtract from 11; 11 maps to 0, 10 means the number is
-invalid. See [checksum](../checksum/index.md) for two fully worked examples.
+invalid (the crate signals that case by returning the sentinel value `10`
+from `calculate_check_digit`). See [checksum](../checksum/index.md) for the
+fully worked examples.
 
 ### Where should I report a bug or suggest a change?
 

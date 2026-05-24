@@ -25,13 +25,16 @@ use nhs_number::NHSNumber;
 /// Build a valid `NHSNumber` from the first nine digits.
 ///
 /// The tenth digit is computed from the first nine via the modulo-11
-/// algorithm (`calculate_check_digit`), so the returned number always passes
-/// `validate_check_digit`.
+/// algorithm (`calculate_check_digit`).
 ///
-/// The caller is responsible for making sure the first nine digits are in
-/// range — i.e. that every digit is in `0..=9`. No bounds checking is done
-/// here; pass out-of-range digits and you will get an incorrect result
-/// rather than a panic.
+/// Caller obligations:
+///
+/// - Every digit must be in `0..=9` — no bounds checking is done here.
+/// - The first nine digits must yield `weighted_sum % 11 != 1`. The strict
+///   NHS specification has no valid check digit when `sum % 11 == 1`, and
+///   `calculate_check_digit` returns the sentinel `10` in that case. This
+///   helper does not detect the sentinel; pass such seeds and you will get
+///   a malformed number rather than a panic.
 fn with_computed_check_digit(first_nine: [i8; 9]) -> NHSNumber {
     // Start with a ten-element array and copy the supplied nine digits into
     // the first nine slots. The tenth slot stays at its default of 0 for
@@ -56,9 +59,12 @@ fn main() {
     // Every seed starts with 9, 9, 9 so the resulting number lands in the
     // testable range. The remaining six digits are whatever we want; they
     // only have to be in 0..=9.
+    // Each seed below is chosen so that `sum % 11 != 1` — otherwise no digit
+    // in 0..=9 could stand in as a check digit (the strict NHS spec calls
+    // that case invalid; `calculate_check_digit` returns the sentinel `10`).
     let seeds: [[i8; 9]; 5] = [
         [9, 9, 9, 0, 0, 0, 0, 0, 1],
-        [9, 9, 9, 1, 2, 3, 4, 5, 6],
+        [9, 9, 9, 1, 0, 0, 0, 0, 0],
         [9, 9, 9, 5, 0, 0, 0, 0, 0],
         [9, 9, 9, 7, 5, 3, 1, 0, 2],
         [9, 9, 9, 9, 9, 9, 9, 9, 8],

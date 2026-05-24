@@ -99,13 +99,13 @@ See [checksum](../checksum/index.md) for the full algorithm.
 ```rust
 use nhs_number::NHSNumber;
 
-let n = NHSNumber::new([9, 9, 9, 1, 2, 3, 4, 5, 6, 0]);
+let n = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 3]);
 
 // The stored tenth digit.
-assert_eq!(n.check_digit(), 0);
+assert_eq!(n.check_digit(), 3);
 
 // The digit the algorithm *expects*, given digits 0..9.
-assert_eq!(n.calculate_check_digit(), 0);
+assert_eq!(n.calculate_check_digit(), 3);
 
 // True only when stored == calculated.
 assert!(n.validate_check_digit());
@@ -116,6 +116,22 @@ Each method has a matching free function:
 - `nhs_number::check_digit(digits)`
 - `nhs_number::calculate_check_digit(digits)`
 - `nhs_number::validate_check_digit(digits)`
+
+### The "no digit fits" case
+
+When the weighted sum of the first nine digits is congruent to `1 (mod 11)`,
+the NHS specification says no digit in `0..=9` can stand in as a check
+digit. `calculate_check_digit` returns the sentinel value `10` in that case,
+and `validate_check_digit` returns `false` regardless of the stored tenth
+digit:
+
+```rust
+use nhs_number::NHSNumber;
+
+let bad = NHSNumber::new([9, 9, 9, 1, 2, 3, 4, 5, 6, 0]);
+assert_eq!(bad.calculate_check_digit(), 10);   // sentinel: invalid
+assert!(!bad.validate_check_digit());
+```
 
 ## Testable range
 

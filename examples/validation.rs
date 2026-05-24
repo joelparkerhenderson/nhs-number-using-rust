@@ -26,21 +26,21 @@ use std::str::FromStr;
 fn main() {
     // === Start with a number known to be valid ===
     //
-    // `999 123 4560` is in the testable range. We parse it from its
-    // "DDD DDD DDDD" form so the code looks like what you would write against
-    // a real-world input.
-    let valid: NHSNumber = NHSNumber::from_str("999 123 4560").unwrap();
+    // `999 100 0003` is in the testable range and validates by the modulo-11
+    // algorithm. We parse it from its "DDD DDD DDDD" form so the code looks
+    // like what you would write against a real-world input.
+    let valid: NHSNumber = NHSNumber::from_str("999 100 0003").unwrap();
 
     // --- Method style on the `NHSNumber` value ---
     //
     // `check_digit` returns the tenth digit exactly as it is stored — no
     // arithmetic, just an array lookup.
-    assert_eq!(valid.check_digit(), 0);
+    assert_eq!(valid.check_digit(), 3);
 
     // `calculate_check_digit` runs the modulo-11 algorithm over the first
     // nine digits and returns the single digit that *should* appear in the
     // tenth position.
-    assert_eq!(valid.calculate_check_digit(), 0);
+    assert_eq!(valid.calculate_check_digit(), 3);
 
     // `validate_check_digit` is simply `check_digit() == calculate_check_digit()`
     // packaged as a `bool`. It's the one-call check you almost always want at
@@ -52,16 +52,16 @@ fn main() {
     // Identical results; pick this form when you already have a digit array
     // and do not need the wrapper struct.
     let digits: [i8; 10] = valid.digits;
-    assert_eq!(nhs_number::check_digit(digits), 0);
-    assert_eq!(nhs_number::calculate_check_digit(digits), 0);
+    assert_eq!(nhs_number::check_digit(digits), 3);
+    assert_eq!(nhs_number::calculate_check_digit(digits), 3);
     assert!(nhs_number::validate_check_digit(digits));
 
     // === Rejecting an invalid number ===
     //
-    // If a transcription error flipped the final digit from 0 to 1, the
-    // stored check digit (1) would no longer match the calculated one (0),
+    // If a transcription error flipped the final digit from 3 to 4, the
+    // stored check digit (4) would no longer match the calculated one (3),
     // and `validate_check_digit` would return `false`.
-    let invalid: NHSNumber = NHSNumber::new([9, 9, 9, 1, 2, 3, 4, 5, 6, 1]);
+    let invalid: NHSNumber = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 4]);
     assert!(!invalid.validate_check_digit());
 
     // Use `check_digit` and `calculate_check_digit` together when you want to
@@ -72,6 +72,17 @@ fn main() {
         invalid.check_digit(),
         invalid.calculate_check_digit()
     );
+
+    // === The `sum % 11 == 1` case: no digit fits ===
+    //
+    // `999 123 4560` is the textbook example where the weighted sum of the
+    // first nine digits is congruent to 1 modulo 11. Per the NHS specification
+    // no digit in 0..=9 is a valid check digit; `calculate_check_digit`
+    // returns the sentinel value `10`, and `validate_check_digit` returns
+    // `false` no matter what the stored tenth digit is.
+    let unfittable: NHSNumber = NHSNumber::new([9, 9, 9, 1, 2, 3, 4, 5, 6, 0]);
+    assert_eq!(unfittable.calculate_check_digit(), 10);
+    assert!(!unfittable.validate_check_digit());
 
     // === The canonical Wikipedia example: 943 476 5919 ===
     //

@@ -56,9 +56,9 @@ check     = match raw:
 - Expected check digit: `9`.
 - Actual tenth digit of `943 476 5919`: `9`. ✓
 
-## Worked example: `999 123 4560`
+## Worked example: `999 100 0003`
 
-`digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0]`
+`digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3]`
 
 | i       | d[i] | weight | product |
 | ------- | ---- | ------ | ------- |
@@ -66,17 +66,32 @@ check     = match raw:
 | 1       | 9    | 9      | 81      |
 | 2       | 9    | 8      | 72      |
 | 3       | 1    | 7      | 7       |
-| 4       | 2    | 6      | 12      |
-| 5       | 3    | 5      | 15      |
-| 6       | 4    | 4      | 16      |
-| 7       | 5    | 3      | 15      |
-| 8       | 6    | 2      | 12      |
-| **sum** |      |        | **320** |
+| 4       | 0    | 6      | 0       |
+| 5       | 0    | 5      | 0       |
+| 6       | 0    | 4      | 0       |
+| 7       | 0    | 3      | 0       |
+| 8       | 0    | 2      | 0       |
+| **sum** |      |        | **250** |
 
-- `320 mod 11 = 1`
-- `11 − 1 = 10` → represented as `0`.
-- Expected check digit: `0`.
-- Actual tenth digit: `0`. ✓
+- `250 mod 11 = 8`
+- `11 − 8 = 3`
+- Expected check digit: `3`.
+- Actual tenth digit of `999 100 0003`: `3`. ✓
+
+## Worked example: `999 123 4560` (invalid)
+
+`digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0]`
+
+`sum = 320`, `320 mod 11 = 1`, raw `= 11 − 1 = 10`.
+
+A raw value of 10 means **no digit in `0..=9` can stand in** as the check
+digit, so any ten-digit string with these first nine digits is invalid by
+the NHS specification regardless of the stored tenth digit.
+
+This crate signals that case by returning the sentinel value `10` from
+`calculate_check_digit`. Because every stored digit is in `0..=9`, the
+sentinel never matches, and `validate_check_digit` correctly returns
+`false`.
 
 ## In this crate
 
@@ -85,17 +100,22 @@ Three entry points, all equivalent:
 ```rust
 use nhs_number::NHSNumber;
 
-let n = NHSNumber::new([9, 9, 9, 1, 2, 3, 4, 5, 6, 0]);
+let n = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 3]);
 
-n.check_digit();            // 0 — reads the stored tenth digit
-n.calculate_check_digit();  // 0 — computes from digits[0..9]
+n.check_digit();            // 3 — reads the stored tenth digit
+n.calculate_check_digit();  // 3 — computes from digits[0..9]
 n.validate_check_digit();   // true — the two agree
 
 // Or, without building an `NHSNumber`:
-let d = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+let d = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
 nhs_number::check_digit(d);
 nhs_number::calculate_check_digit(d);
 nhs_number::validate_check_digit(d);
+
+// The "no digit fits" case:
+let bad = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+assert_eq!(nhs_number::calculate_check_digit(bad), 10); // sentinel
+assert!(!nhs_number::validate_check_digit(bad));
 ```
 
 ## What this catches

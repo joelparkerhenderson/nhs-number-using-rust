@@ -7,10 +7,11 @@
 //! 2. Formatting it as a human-readable string.
 //! 3. Dropping the wrapper and using the equivalent free function.
 //!
-//! The NHS Number used below — `999 123 4560` — is drawn from the "testable"
-//! range `999 000 0000` – `999 999 9999`. Numbers in that range are valid by
-//! the check-digit algorithm but are guaranteed never to be issued to a real
-//! patient, so they are safe to hard-code in source files and tests.
+//! The NHS Number used below — `999 100 0003` — is drawn from the "testable"
+//! range `999 000 0000` – `999 999 9999`. That whole range is guaranteed
+//! never to be issued to a real patient, so its numbers are safe to hard-code
+//! in source files and tests. (Roughly nine in ten numbers in the range fail
+//! the modulo-11 check; `999 100 0003` is one of the ones that passes.)
 //!
 //! Run with:
 //!
@@ -33,7 +34,7 @@ fn main() {
     //
     // Digits are stored most-significant first, i.e. digits[0] is the
     // leftmost digit of the displayed number.
-    let digits: [i8; 10] = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+    let digits: [i8; 10] = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
     let nhs_number: NHSNumber = NHSNumber::new(digits);
 
     // === 2. Construct via a struct literal ===
@@ -53,13 +54,13 @@ fn main() {
     //   three digits, space, three digits, space, four digits
     let formatted: String = nhs_number.to_string();
     println!("formatted: {}", formatted);
-    assert_eq!(formatted, "999 123 4560");
+    assert_eq!(formatted, "999 100 0003");
 
     // The `Into<String>` impl is just a thin wrapper around `to_string()`,
     // so the two produce identical output. Use whichever reads best in
     // context — `to_string()` is usually the most familiar.
     let as_string: String = nhs_number.into();
-    assert_eq!(as_string, "999 123 4560");
+    assert_eq!(as_string, "999 100 0003");
 
     // === 4. Ordering works out of the box ===
     //

@@ -1,0 +1,88 @@
+# Testing
+
+How tests are organised, what they cover, and what to add when you introduce
+a new public API.
+
+## Two layers
+
+1. **Unit tests** live alongside the code they test, inside a
+   `#[cfg(test)] mod tests` block at the bottom of the same file.
+2. **Doc-tests** live in the `///` rustdoc comments above public items.
+
+Both run under `cargo test`. There is intentionally no `tests/` integration
+directory — the examples under [`examples/`](../examples/) play that role
+because each one is a complete program that exercises the public API.
+
+## The actual / expect pattern
+
+Every assertion follows the same skeleton:
+
+```rust
+let actual = ...;
+let expect = ...;
+assert_eq!(actual, expect);
+```
+
+Reasons:
+
+- `actual` and `expect` make the role of each side obvious without re-reading
+  the assertion macro arguments.
+- `assert_eq!` error messages then read naturally: `assertion `actual ==
+  expect` failed`.
+- The pattern survives refactoring: rename one side, the other is unaffected.
+
+## When you add a new public API
+
+You must add **both**:
+
+1. A **unit test** in the appropriate `#[cfg(test)] mod tests` block.
+2. A **doc-test** in the `///` comment above the item.
+
+The doc-test serves two purposes — it tests the example *and* it ensures the
+example in the rendered docs compiles.
+
+## What to test
+
+- Happy path: typical input, expected output.
+- Edge cases: `[0; 10]`, `[9; 10]`, every boundary of the testable range.
+- Error cases for parsers: wrong length, wrong separator, doubled spaces,
+  leading/trailing whitespace, non-digit characters. See
+  [`src/from_str.rs`](../src/from_str.rs) for the existing pattern.
+- Round-trips: `parse → display → parse` must recover the original value.
+- Equivalence: every free function must match its `NHSNumber` method
+  counterpart on identical input.
+
+## Examples are tests too
+
+Every file under [`examples/`](../examples/) ends with `assert_eq!` /
+`assert!` checks (or, when output is the point, an explicit "ok" print plus
+asserts on the accumulated state). A successful run leaves a clear trace.
+
+Running examples is part of release sign-off (see
+[`release.md`](release.md)).
+
+## Running the suite
+
+```sh
+cargo test                        # All unit and doc-tests.
+cargo test -- --nocapture         # Show `println!` from inside tests.
+cargo test --doc                  # Just the doc-tests.
+cargo test <pattern>              # Only tests whose name matches.
+
+cargo run --example basic_usage   # Run a single example.
+cargo build --examples            # Compile every example without running.
+```
+
+If you add an example, it must compile and run end-to-end before the change
+lands.
+
+## What is *not* tested here
+
+- Real patient data — never. See [`safety.md`](safety.md).
+- Compliance against external NHS systems — the crate models the format and
+  algorithm; integration testing is the deploying organisation's job.
+
+## Performance tests
+
+There is no benchmark suite. The hot paths are trivially fast (ten `i8`
+multiplies); add one only if a real workload demonstrates a regression.

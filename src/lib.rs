@@ -77,15 +77,16 @@
 //! ```rust
 //! use nhs_number::*;
 //! use std::str::FromStr;
-//! 
-//! // NHS Number that we can use for testing purposes
-//! let str = "999 123 4560";
-//! 
+//!
+//! // NHS Number that we can use for testing purposes (testable range).
+//! let str = "999 100 0003";
+//!
 //! // Create a new NHS Number by converting from a string.
 //! let nhs_number = NHSNumber::from_str(str).unwrap();
 //!
 //! // Validate a NHS Number using the check digit algorithm.
 //! let valid: bool = nhs_number.validate_check_digit();
+//! assert!(valid);
 //! ```
 //!
 use serde::{Deserialize, Serialize};
@@ -107,7 +108,7 @@ pub use testable::*;
 ///
 /// ```rust
 /// use nhs_number::NHSNumber;
-/// let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+/// let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
 /// let nhs_number = NHSNumber { digits: digits };
 /// ```
 ///
@@ -123,7 +124,7 @@ impl NHSNumber {
     ///
     /// ```rust
     /// use nhs_number::NHSNumber;
-    /// let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+    /// let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
     /// let nhs_number = NHSNumber::new(digits);
     /// ```
     ///
@@ -138,10 +139,10 @@ impl NHSNumber {
     ///
     /// ```rust
     /// use nhs_number::NHSNumber;
-    /// let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+    /// let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
     /// let nhs_number = NHSNumber::new(digits);
     /// let check_digit = nhs_number.check_digit();
-    /// assert_eq!(check_digit, 0);
+    /// assert_eq!(check_digit, 3);
     /// ```
     ///
     /// This method calls the function [check_digit()].
@@ -157,11 +158,16 @@ impl NHSNumber {
     ///
     /// ```rust
     /// use nhs_number::NHSNumber;
-    /// let digits = [9, 9, 9, 1, 2 , 3, 4, 5, 6, 0];
+    /// let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
     /// let nhs_number = NHSNumber::new(digits);
     /// let check_digit = nhs_number.calculate_check_digit();
-    /// assert_eq!(check_digit, 0);
+    /// assert_eq!(check_digit, 3);
     /// ```
+    ///
+    /// Returns `10` as a sentinel meaning "no valid check digit exists"
+    /// (i.e. `sum_of_weighted_first_nine % 11 == 1`). The sentinel can
+    /// never equal a stored digit, so [validate_check_digit()] correctly
+    /// reports `false` for such numbers.
     ///
     /// This method calls the function [calculate_check_digit()].
     ///
@@ -176,10 +182,10 @@ impl NHSNumber {
     ///     
     /// ```rust
     /// use nhs_number::NHSNumber;
-    /// let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+    /// let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
     /// let nhs_number = NHSNumber::new(digits);
     /// let is_valid = nhs_number.validate_check_digit();
-    /// assert_eq!(is_valid, true);
+    /// assert!(is_valid);
     /// ```
     ///
     /// This method calls the function [validate_check_digit()].
@@ -323,14 +329,34 @@ pub fn check_digit(digits: [i8; 10]) -> i8 {
     digits[9]
 }
 
-/// Calculate the NHS Number check digit using a checksum algorithm.
+/// Calculate the NHS Number check digit using the modulo-11 algorithm.
+///
+/// Algorithm:
+///
+/// 1. Multiply each of the first nine digits by `10 - i` and sum the products.
+/// 2. Take the sum modulo 11; subtract from 11 to get a raw value in `1..=11`.
+/// 3. Map the raw value: `11` → `0`, `10` → invalid (no digit fits), else the raw value.
+///
+/// **Return value `10` is a sentinel meaning "no valid check digit exists"**
+/// — that case occurs when `sum % 11 == 1`. Because a stored check digit is
+/// always in `0..=9`, the sentinel can never equal a stored value, so
+/// [validate_check_digit()] correctly returns `false` for such numbers.
 ///
 /// Example:
 ///
 /// ```rust
-/// let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+/// // `999 100 0003` — testable range, valid by the modulo-11 algorithm.
+/// let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
 /// let check_digit = ::nhs_number::calculate_check_digit(digits);
-/// assert_eq!(check_digit, 0);
+/// assert_eq!(check_digit, 3);
+/// ```
+///
+/// Example with an invalid number — the sentinel `10` is returned:
+///
+/// ```rust
+/// // sum of weighted first nine digits ≡ 1 (mod 11), so no digit fits.
+/// let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+/// assert_eq!(::nhs_number::calculate_check_digit(digits), 10);
 /// ```
 ///
 /// This function is called by the method [NHSNumber::calculate_check_digit](NHSNumber::calculate_check_digit).
@@ -341,19 +367,28 @@ pub fn calculate_check_digit(digits: [i8; 10]) -> i8 {
         .iter()
         .take(9)
         .enumerate()
-        .map(|(i, &d)| d as usize * (10 - i as usize))
+        .map(|(i, &d)| d as usize * (10 - i))
         .sum();
-    ((11 - (sum % 11)) % 10) as i8
+    let raw = 11 - (sum % 11);
+    if raw == 11 { 0 } else { raw as i8 }
 }
 
 /// Validate the NHS Number check digit equals the calculated check digit.
 ///
+/// Returns `false` whenever no digit in `0..=9` could stand in for the check
+/// digit — i.e. when [calculate_check_digit()] returns the sentinel `10`.
+///
 /// Example:
-///     
+///
 /// ```rust
+/// // `999 100 0003` — testable range, valid by the modulo-11 algorithm.
+/// let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
+/// assert!(nhs_number::validate_check_digit(digits));
+///
+/// // `999 123 4560` — the weighted sum gives `sum % 11 == 1`, so per the
+/// // NHS specification no digit can stand in; the number is invalid.
 /// let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
-/// let is_valid = nhs_number::validate_check_digit(digits);
-/// assert_eq!(is_valid, true);
+/// assert!(!nhs_number::validate_check_digit(digits));
 /// ```
 ///
 /// This function is called by the method [NHSNumber::validate_check_digit](NHSNumber::validate_check_digit).
@@ -417,21 +452,47 @@ mod tests {
 
         #[test]
         fn test_calculate_check_digit() {
-            let a: NHSNumber = NHSNumber::new([9, 9, 9, 1, 2, 3, 4, 5, 6, 0]);
-            let actual: i8 = a.calculate_check_digit();
-            let expect: i8 = 0;
-            assert_eq!(actual, expect);
+            // `999 100 0003` — typical case: raw in 1..=9.
+            let a: NHSNumber = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 3]);
+            assert_eq!(a.calculate_check_digit(), 3);
+
+            // `943 476 5919` — Wikipedia reference number.
+            let b: NHSNumber = NHSNumber::new([9, 4, 3, 4, 7, 6, 5, 9, 1, 9]);
+            assert_eq!(b.calculate_check_digit(), 9);
+
+            // raw == 11 case: `sum % 11 == 0` must map to check digit 0.
+            // `999 100 0100` — weighted sum 253, 253 % 11 == 0.
+            let c: NHSNumber = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 1, 0, 0]);
+            assert_eq!(c.calculate_check_digit(), 0);
+
+            // raw == 10 case: `sum % 11 == 1` must return sentinel 10.
+            // `999 123 4560` — weighted sum 320, 320 % 11 == 1.
+            let d: NHSNumber = NHSNumber::new([9, 9, 9, 1, 2, 3, 4, 5, 6, 0]);
+            assert_eq!(d.calculate_check_digit(), 10);
         }
 
         #[test]
         fn test_validate_check_digit() {
             {
-                let a: NHSNumber = NHSNumber::new([9, 9, 9, 1, 2, 3, 4, 5, 6, 0]);
-                assert_eq!(a.validate_check_digit(), true);
+                // Valid by strict NHS spec.
+                let a: NHSNumber = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 3]);
+                assert!(a.validate_check_digit());
             }
             {
-                let a: NHSNumber = NHSNumber::new([9, 9, 9, 1, 2, 3, 4, 5, 6, 1]);
-                assert_eq!(a.validate_check_digit(), false);
+                // Same first nine digits, wrong stored check digit.
+                let a: NHSNumber = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 4]);
+                assert!(!a.validate_check_digit());
+            }
+            {
+                // `sum % 11 == 1` → no digit fits → must be invalid for
+                // every stored tenth digit in 0..=9.
+                for stored in 0i8..=9 {
+                    let n = NHSNumber::new([9, 9, 9, 1, 2, 3, 4, 5, 6, stored]);
+                    assert!(
+                        !n.validate_check_digit(),
+                        "999 123 456{stored} must be invalid (sum % 11 == 1)"
+                    );
+                }
             }
         }
 
@@ -463,10 +524,17 @@ mod tests {
 
         #[test]
         fn test_calculate_check_digit() {
+            // Typical case.
+            let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
+            assert_eq!(crate::calculate_check_digit(digits), 3);
+
+            // raw == 11 → 0.
+            let digits = [9, 9, 9, 1, 0, 0, 0, 1, 0, 0];
+            assert_eq!(crate::calculate_check_digit(digits), 0);
+
+            // raw == 10 → sentinel 10 (no digit fits).
             let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
-            let actual: i8 = crate::calculate_check_digit(digits);
-            let expect: i8 = 0;
-            assert_eq!(actual, expect);
+            assert_eq!(crate::calculate_check_digit(digits), 10);
         }
     }
 }

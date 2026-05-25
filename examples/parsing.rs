@@ -78,16 +78,37 @@ fn main() {
     // comment on each explains *why* — use these as a reference when your
     // input source needs pre-parse normalisation.
     let invalid_inputs: [(&str, &str); 10] = [
-        ("",                 "empty string has length 0, neither 10 nor 12"),
-        ("12345",            "five characters, below both accepted lengths"),
-        ("01234567890",      "eleven characters, between the accepted lengths"),
-        ("012-345-6789",     "twelve characters but separators are hyphens, not spaces"),
-        (" 012 345 6789",    "leading space — position 3 is a digit, not the required space"),
-        ("012 345 6789 ",    "trailing space — position 3 is still a space but length is now 13"),
-        ("012  345  6789",   "doubled spaces push the second group out of its expected positions"),
-        ("012 3456789",      "one space only — the length becomes 11"),
-        ("012345 6789",      "one space only, in the wrong place — length 11"),
-        ("abc 123 4567",     "letters in the first group fail `to_digit(10)` lookup"),
+        ("", "empty string has length 0, neither 10 nor 12"),
+        ("12345", "five characters, below both accepted lengths"),
+        (
+            "01234567890",
+            "eleven characters, between the accepted lengths",
+        ),
+        (
+            "012-345-6789",
+            "twelve characters but separators are hyphens, not spaces",
+        ),
+        (
+            " 012 345 6789",
+            "leading space — position 3 is a digit, not the required space",
+        ),
+        (
+            "012 345 6789 ",
+            "trailing space — position 3 is still a space but length is now 13",
+        ),
+        (
+            "012  345  6789",
+            "doubled spaces push the second group out of its expected positions",
+        ),
+        ("012 3456789", "one space only — the length becomes 11"),
+        (
+            "012345 6789",
+            "one space only, in the wrong place — length 11",
+        ),
+        (
+            "abc 123 4567",
+            "letters in the first group fail `to_digit(10)` lookup",
+        ),
     ];
 
     for (input, reason) in invalid_inputs {

@@ -10,7 +10,9 @@
       "Bash(git mv *)",
       "Bash(cargo test *)",
       "Bash(cargo clippy *)",
-      "Bash(cargo doc *)"
+      "Bash(cargo doc *)",
+      "Bash(python3 *)",
+      "Bash(cargo fmt *)"
     ]
   }
 }

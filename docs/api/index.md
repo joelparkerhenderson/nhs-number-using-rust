@@ -42,11 +42,11 @@ pub struct NHSNumber {
 
 ### Hand-written impls
 
-| Impl                           | Format / behaviour                                     |
-| ------------------------------ | ------------------------------------------------------ |
-| `Display`                      | `"DDD DDD DDDD"` — 3, 3, 4 digits separated by spaces. |
-| `Into<String>`                 | Delegates to `to_string()`.                            |
-| `FromStr` (err = `ParseError`) | Accepts `"DDDDDDDDDD"` or `"DDD DDD DDDD"`.            |
+| Impl                           | Format / behaviour                                                                |
+| ------------------------------ | --------------------------------------------------------------------------------- |
+| `Display`                      | `"DDD DDD DDDD"` — 3, 3, 4 digits separated by spaces.                            |
+| `From<NHSNumber> for String`   | Delegates to `to_string()`. Provides `Into<String>` via the std blanket impl.     |
+| `FromStr` (err = `ParseError`) | Accepts `"DDDDDDDDDD"` or `"DDD DDD DDDD"`.                                       |
 
 ### Inherent methods
 

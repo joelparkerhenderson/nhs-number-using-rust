@@ -2,9 +2,9 @@
 
 ### Is this crate an official NHS product?
 
-No. It is an open-source Rust crate published by Joel Henderson at
-GIG Cymru / NHS Wales. It is licensed for use by anyone under a permissive
-multi-license (MIT OR Apache-2.0 OR GPL-2.0 OR GPL-3.0 OR BSD-3-Clause).
+No. It is an open-source Rust crate published by Joel Parker Henderson. It
+is licensed for use by anyone under a permissive multi-license (MIT OR
+Apache-2.0 OR GPL-2.0 OR GPL-3.0 OR BSD-3-Clause).
 
 ### Can I use this crate in production NHS software?
 
@@ -15,10 +15,9 @@ pin the version, and test against your own corpus before relying on it.
 
 ### Which jurisdictions does the NHS Number cover?
 
-NHS England, NHS Wales, and NHS Isle of Man. Scotland uses a different
-identifier (CHI numbers); Northern Ireland uses a separate sub-range of the
-same 10-digit space. See [ranges](../ranges/index.md) for the precise numeric
-ranges.
+NHS England and NHS Isle of Man. Scotland uses a different identifier (CHI
+numbers); Northern Ireland uses a separate sub-range of the same 10-digit
+space. See [ranges](../ranges/index.md) for the precise numeric ranges.
 
 ### Does a valid check digit mean the number belongs to a real patient?
 
@@ -92,5 +91,7 @@ fully worked examples.
 
 ### Where should I report a bug or suggest a change?
 
-Email the maintainer at
-[joel.henderson@wales.nhs.uk](mailto:joel.henderson@wales.nhs.uk).
+Open an issue at
+<https://github.com/joelparkerhenderson/nhs-number/issues>, or email the
+maintainer at
+[joel@joelparkerhenderson.com](mailto:joel@joelparkerhenderson.com).

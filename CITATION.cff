@@ -7,14 +7,13 @@ type: software
 authors:
   - given-names: Joel Parker
     family-names: Henderson
-    email: joel.henderson@wales.nhs.uk
-    affiliation: wales.nhs.uk
+    email: joel@joelparkerhenderson.com
     orcid: 'https://orcid.org/0009-0000-4681-282X'
 identifiers:
   - type: url
-    value: 'https://github.com/gig-cymru-nhs-wales/nhs-number/'
+    value: 'https://github.com/joelparkerhenderson/nhs-number/'
     description: NHS Number Rust crate
-repository-code: 'https://github.com/gig-cymru-nhs-wales/nhs-number/'
+repository-code: 'https://github.com/joelparkerhenderson/nhs-number/'
 abstract: >-
   NHS Number Rust crate
 license: See license file

@@ -1,6 +1,6 @@
 # Crate Documentation
 
-**Version:** 0.3.0
+**Version:** 1.0.1
 
 **Format Version:** 43
 
@@ -9,12 +9,12 @@
 # NHS Number
 
 A National Health Service (NHS) Number is a unique number allocated in a shared
-numbering scheme to registered users of the three public health services in
-England, Wales, and the Isle of Man.
+numbering scheme to registered users of the public health services in
+England and the Isle of Man.
 
 The NHS Number is the key to the identification of patients, especially in
 delivering safe care across provider organisations, and is required in all new
-software deployed within the National Health Service (NHS) organizations.
+software deployed within the National Health Service (NHS) organisations.
 
 References:
 
@@ -33,9 +33,9 @@ Currently issued numbers are in these ranges:
 
 * 300 000 000 to 399 999 999 (England)
 
-* 400 000 000 to 499 999 999 (England, Wales, Isle of Man)
+* 400 000 000 to 499 999 999 (England, Isle of Man)
 
-* 600 000 000 to 799 999 999 (England, Wales, Isle of Man)
+* 600 000 000 to 799 999 999 (England, Isle of Man)
 
 Unavailable number ranges include:
 
@@ -279,7 +279,7 @@ pub static TESTABLE_RANGE_INCLUSIVE: std::sync::LazyLock<std::ops::RangeInclusiv
 ### Struct `NHSNumber`
 
 NHS Number is a unique identifier for patients in the National Health
-Service of England, Wales, and the Isle of Man.
+Service of England and the Isle of Man.
 
 Reference:
 

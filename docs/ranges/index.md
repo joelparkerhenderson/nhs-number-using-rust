@@ -1,8 +1,8 @@
 # NHS Number Ranges
 
-NHS Numbers are ten-digit identifiers shared across NHS England, NHS Wales, and
-NHS Isle of Man. The numeric range determines where and whether a number may
-have been issued.
+NHS Numbers are ten-digit identifiers shared across NHS England and NHS Isle
+of Man. The numeric range determines where and whether a number may have
+been issued.
 
 ## Reference
 
@@ -10,15 +10,15 @@ have been issued.
 
 ## Currently issued ranges
 
-| Range                         | Jurisdictions               |
-| ----------------------------- | --------------------------- |
-| `300 000 000` – `399 999 999` | England                     |
-| `400 000 000` – `499 999 999` | England, Wales, Isle of Man |
-| `600 000 000` – `799 999 999` | England, Wales, Isle of Man |
+| Range                         | Jurisdictions        |
+| ----------------------------- | -------------------- |
+| `300 000 000` – `399 999 999` | England              |
+| `400 000 000` – `499 999 999` | England, Isle of Man |
+| `600 000 000` – `799 999 999` | England, Isle of Man |
 
 ## Unavailable ranges
 
-These ranges exist but are **not** used for NHS (England / Wales / IoM)
+These ranges exist but are **not** used for NHS (England / Isle of Man)
 numbers:
 
 | Range                           | Used for                            |

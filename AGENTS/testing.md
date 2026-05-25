@@ -13,6 +13,25 @@ Both run under `cargo test`. There is intentionally no `tests/` integration
 directory — the examples under [`examples/`](../examples/) play that role
 because each one is a complete program that exercises the public API.
 
+### Sub-module organisation in `src/lib.rs::tests`
+
+The `mod tests` block in `src/lib.rs` is split into named sub-modules so
+each test's purpose is obvious from its path:
+
+| Sub-module   | Holds                                                            |
+| ------------ | ---------------------------------------------------------------- |
+| `structure`  | Inherent methods on `NHSNumber` (`new`, `check_digit`, …).       |
+| `utilities`  | Free-function counterparts (`format`, `check_digit`, …).         |
+| `properties` | Invariants over many inputs (round-trip, method ↔ free-fn).      |
+| `boundaries` | Explicit coverage of the `sum % 11 ∈ {0, 1, 2..=10}` branches.   |
+| `ordering`   | `Ord`/`Eq`, `Vec::sort`, `BTreeSet`, `BTreeMap` use cases.       |
+| `traits`     | Trait-impl smoke tests (`Copy`, `Clone`, `Send`, `Sync`, serde). |
+
+New tests should land in the sub-module that matches their concern; do
+not invent a parallel layout. If a genuinely new concern appears (e.g.
+benchmarks, fuzz-target shims), add a sub-module here and reference it
+from `spec.md` §13.1.
+
 ## The actual / expect pattern
 
 Every assertion follows the same skeleton:

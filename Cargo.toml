@@ -1,13 +1,13 @@
 [package]
 name = "nhs-number"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2024"
-authors = ["Joel Parker Henderson <joel.henderson@wales.nhs.uk>"]
-description = "National Health Service (NHS) number for NHS England, NHS Wales, NHS Isle of Man."
+authors = ["Joel Parker Henderson <joel@joelparkerhenderson.com>"]
+description = "United Kingdom (UK) National Health Service (NHS) Number — parse, format, and validate the ten-digit identifier used by UK NHS England, UK NHS Scotland, UK NHS Wales, and UK NHS Isle of Man."
 license = "MIT OR Apache-2.0 OR GPL-2.0 OR GPL-3.0 OR BSD-3-Clause"
-repository = "https://github.com/GIG-Cymru-NHS-Wales/nhs-number-using-rust/"
+repository = "https://github.com/joelparkerhenderson/nhs-number/"
 readme = "README.md"
-keywords = ["health", "iechyd", "nhs" ]
+keywords = ["health", "nhs", "identifier", "checksum"]
 categories = ["science", "data-structures", "value-formatting"]
 include = ["src/**/*", "LICENSE.md", "README.md"]
 

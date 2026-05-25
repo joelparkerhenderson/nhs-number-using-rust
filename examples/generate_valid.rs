@@ -84,10 +84,9 @@ fn main() {
     // about ten times, which is negligible for test fixtures. `from_fn` +
     // `find` is an iterator-based way to express "loop until the predicate
     // holds"; a plain `loop { … if … { break … } }` is equally fine.
-    let random_valid: NHSNumber =
-        std::iter::from_fn(|| Some(NHSNumber::testable_random_sample()))
-            .find(|n| n.validate_check_digit())
-            .unwrap();
+    let random_valid: NHSNumber = std::iter::from_fn(|| Some(NHSNumber::testable_random_sample()))
+        .find(|n| n.validate_check_digit())
+        .unwrap();
     println!("random valid testable: {}", random_valid);
     assert!(random_valid.validate_check_digit());
 }

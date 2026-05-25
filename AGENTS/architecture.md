@@ -49,12 +49,16 @@ the contract.
 
 ## Module map
 
-| Module                      | Owns                                                              |
-| --------------------------- | ----------------------------------------------------------------- |
-| `nhs_number` (`lib.rs`)     | `NHSNumber` struct, `Display`/`Into<String>`, free functions.     |
-| `nhs_number::from_str`      | `FromStr` impl (the only parser).                                 |
-| `nhs_number::parse_error`   | The unit struct `ParseError`.                                     |
+| Module                      | Owns                                                                |
+| --------------------------- | ------------------------------------------------------------------- |
+| `nhs_number` (`lib.rs`)     | `NHSNumber` struct, `Display`/`Into<String>`, free functions.       |
+| `nhs_number::from_str`      | `FromStr` impl (the only parser).                                   |
+| `nhs_number::parse_error`   | The unit struct `ParseError`.                                       |
 | `nhs_number::testable`      | `TESTABLE_MIN`, `TESTABLE_MAX`, `TESTABLE_RANGE_INCLUSIVE`, sampler. |
+
+Each module carries a `//!` preamble that explains its role and links
+back to the relevant section of `spec.md`. Keep those preambles current
+when behaviour shifts.
 
 The `testable` module is re-exported at the crate root
 (`pub use testable::*;`), so callers can write `nhs_number::testable_random_sample()`

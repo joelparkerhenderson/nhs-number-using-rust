@@ -56,11 +56,15 @@ fn main() {
     println!("formatted: {}", formatted);
     assert_eq!(formatted, "999 100 0003");
 
-    // The `Into<String>` impl is just a thin wrapper around `to_string()`,
-    // so the two produce identical output. Use whichever reads best in
-    // context — `to_string()` is usually the most familiar.
-    let as_string: String = nhs_number.into();
-    assert_eq!(as_string, "999 100 0003");
+    // The crate also implements `From<NHSNumber> for String`, which gives
+    // `Into<String>` for free via the standard-library blanket impl. So
+    // `String::from(nhs_number)` and `nhs_number.into()` both produce the
+    // same value as `to_string()`. Use whichever reads best in context —
+    // `to_string()` is usually the most familiar.
+    let as_string_from: String = String::from(nhs_number);
+    let as_string_into: String = nhs_number.into();
+    assert_eq!(as_string_from, "999 100 0003");
+    assert_eq!(as_string_into, "999 100 0003");
 
     // === 4. Ordering works out of the box ===
     //

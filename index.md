@@ -2,19 +2,19 @@
 
 **[documentation](https://docs.rs/nhs-number/)**
 •
-**[source](https://github.com/GIG-Cymru-NHS-Wales/nhs-number-using-rust)**
+**[source](https://github.com/joelparkerhenderson/nhs-number)**
 •
 **[crate](https://crates.io/crates/nhs-number)**
 •
 **[spec](spec.md)**
 •
-**[llms.txt](https://raw.githubusercontent.com/GIG-Cymru-NHS-Wales/nhs-number-using-rust/refs/heads/main/llms.txt)**
+**[llms.txt](https://raw.githubusercontent.com/joelparkerhenderson/nhs-number/refs/heads/main/llms.txt)**
 •
-**[email](mailto:joel.henderson@wales.nhs.uk)**
+**[email](mailto:joel@joelparkerhenderson.com)**
 
 A National Health Service (NHS) Number is a unique identifier allocated in a
-shared numbering scheme to registered users of the three public health
-services in **England**, **Wales**, and the **Isle of Man**.
+shared numbering scheme to registered users of the public health services in
+**England** and the **Isle of Man**.
 
 The NHS Number is the key to identifying patients — especially when
 delivering safe care across provider organisations — and is required in all
@@ -65,9 +65,9 @@ Currently issued ranges:
 
 * `300 000 000` – `399 999 999` (England)
 
-* `400 000 000` – `499 999 999` (England, Wales, Isle of Man)
+* `400 000 000` – `499 999 999` (England, Isle of Man)
 
-* `600 000 000` – `799 999 999` (England, Wales, Isle of Man)
+* `600 000 000` – `799 999 999` (England, Isle of Man)
 
 Unavailable (reserved for other systems):
 

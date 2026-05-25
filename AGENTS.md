@@ -13,14 +13,14 @@ topical guides under [`AGENTS/`](AGENTS/) for the full picture, and read
 | ------------ | -------------------------------------------------------------------- |
 | Crate        | `nhs-number`                                                         |
 | Purpose      | Model, parse, format, and validate NHS Numbers.                      |
-| Jurisdiction | NHS England, NHS Wales, NHS Isle of Man.                             |
+| Jurisdiction | NHS England, NHS Isle of Man.                                        |
 | Language     | Rust (edition 2024)                                                  |
 | License      | MIT OR Apache-2.0 OR GPL-2.0 OR GPL-3.0 OR BSD-3-Clause              |
 | Runtime deps | `rand`, `serde` (with `derive`)                                      |
-| Repository   | https://github.com/GIG-Cymru-NHS-Wales/nhs-number-using-rust         |
+| Repository   | https://github.com/joelparkerhenderson/nhs-number                    |
 | Crate        | https://crates.io/crates/nhs-number                                  |
 | Docs         | https://docs.rs/nhs-number/                                          |
-| Maintainer   | Joel Parker Henderson — joel.henderson@wales.nhs.uk                  |
+| Maintainer   | Joel Parker Henderson — joel@joelparkerhenderson.com                 |
 
 ## How this repo is documented
 
@@ -28,7 +28,8 @@ The documentation is layered so each reader can stop at the depth they need:
 
 ```
 index.md                   ← README (user-facing introduction)
-spec.md                    ← living spec-driven-development specification
+spec.md                    ← living spec-driven-development specification,
+                             including the roadmap (§16) and open tasks (§17)
 AGENTS.md                  ← this file (agent entry point)
 AGENTS/
 ├── architecture.md        ← repo layout, modules, data model, public API
@@ -47,6 +48,9 @@ docs/
 examples/                  ← runnable `cargo run --example <name>` programs
 help/releasing/            ← release checklist (mirrors AGENTS/release.md)
 ```
+
+There is **no separate** `plan.md` or `tasks.md` — both live as sections in
+`spec.md`. If a planning artefact needs a home, add a section there.
 
 ## Five rules that bind every change
 
@@ -73,7 +77,8 @@ topical guide.
 If you have just been spawned with no prior context, do this in order:
 
 1. Read this file (you are here).
-2. Skim [`spec.md`](spec.md) — it is the source of truth.
+2. Skim [`spec.md`](spec.md) — it is the source of truth, and §16/§17 also
+   show what work is currently in flight.
 3. Skim [`AGENTS/architecture.md`](AGENTS/architecture.md) for the layout.
 4. For any task that touches behaviour, open
    [`AGENTS/safety.md`](AGENTS/safety.md) **before** writing code.

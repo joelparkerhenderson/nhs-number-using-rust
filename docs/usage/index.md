@@ -29,7 +29,7 @@ Or add it to `Cargo.toml` by hand:
 
 ```toml
 [dependencies]
-nhs-number = "0.3"
+nhs-number = "1"
 ```
 
 ## Construction

@@ -76,3 +76,16 @@ to future readers.
 
 `spec.md` is for the **observable behaviour** of the crate's public API.
 Everything else lives in topical agent guides.
+
+## Planning and tasks live in `spec.md`
+
+This project does not maintain a separate `plan.md` or `tasks.md`. Instead:
+
+- The **roadmap** lives in `spec.md` §16.
+- The **open task backlog** lives in `spec.md` §17, with stable `T<n>`
+  identifiers callers can reference from commits.
+- **Open questions and known divergences** live in `spec.md` §18.
+
+When you finish a task, edit §17 in the same PR that ships the work so the
+backlog reflects reality. When you take on a task, link the commit message
+to its `T<n>` identifier.

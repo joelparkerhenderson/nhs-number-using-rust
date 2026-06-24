@@ -5,7 +5,7 @@
 //! detail — callers who need a richer taxonomy (wrong length, wrong
 //! separator, non-digit character, …) wrap or map it at the parse site.
 //!
-//! See [`spec.md`](https://github.com/joelparkerhenderson/nhs-number/blob/main/spec.md)
+//! See [`spec.md`](https://github.com/joelparkerhenderson/nhs-number-using-rust/blob/main/spec.md)
 //! §12 for the design rationale.
 
 /// Error returned by `<NHSNumber as FromStr>::from_str` for any string
@@ -41,7 +41,7 @@
 /// assert_eq!(result, Err(MyError::BadNhsNumber("not a number".into())));
 /// ```
 ///
-/// [`spec.md`]: https://github.com/joelparkerhenderson/nhs-number/blob/main/spec.md
+/// [`spec.md`]: https://github.com/joelparkerhenderson/nhs-number-using-rust/blob/main/spec.md
 #[derive(Debug, PartialEq, Eq)]
 pub struct ParseError;
 

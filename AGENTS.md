@@ -17,7 +17,7 @@ topical guides under [`AGENTS/`](AGENTS/) for the full picture, and read
 | Language     | Rust (edition 2024)                                                  |
 | License      | MIT OR Apache-2.0 OR GPL-2.0 OR GPL-3.0 OR BSD-3-Clause              |
 | Runtime deps | `rand`, `serde` (with `derive`)                                      |
-| Repository   | https://github.com/joelparkerhenderson/nhs-number                    |
+| Repository   | https://github.com/joelparkerhenderson/nhs-number-using-rust                    |
 | Crate        | https://crates.io/crates/nhs-number                                  |
 | Docs         | https://docs.rs/nhs-number/                                          |
 | Maintainer   | Joel Parker Henderson — joel@joelparkerhenderson.com                 |

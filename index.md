@@ -2,13 +2,13 @@
 
 **[documentation](https://docs.rs/nhs-number/)**
 •
-**[source](https://github.com/joelparkerhenderson/nhs-number)**
+**[source](https://github.com/joelparkerhenderson/nhs-number-using-rust)**
 •
 **[crate](https://crates.io/crates/nhs-number)**
 •
 **[spec](spec.md)**
 •
-**[llms.txt](https://raw.githubusercontent.com/joelparkerhenderson/nhs-number/refs/heads/main/llms.txt)**
+**[llms.txt](https://raw.githubusercontent.com/joelparkerhenderson/nhs-number-using-rust/refs/heads/main/llms.txt)**
 •
 **[email](mailto:joel@joelparkerhenderson.com)**
 

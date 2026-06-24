@@ -11,9 +11,9 @@ authors:
     orcid: 'https://orcid.org/0009-0000-4681-282X'
 identifiers:
   - type: url
-    value: 'https://github.com/joelparkerhenderson/nhs-number/'
+    value: 'https://github.com/joelparkerhenderson/nhs-number-using-rust/'
     description: NHS Number Rust crate
-repository-code: 'https://github.com/joelparkerhenderson/nhs-number/'
+repository-code: 'https://github.com/joelparkerhenderson/nhs-number-using-rust/'
 abstract: >-
   NHS Number Rust crate
 license: See license file

@@ -16,7 +16,7 @@
 //! upstream sources produce variant forms (hyphen separators, mixed
 //! whitespace, full-width digits) must normalise before delegating here.
 //!
-//! See [`spec.md`](https://github.com/joelparkerhenderson/nhs-number/blob/main/spec.md)
+//! See [`spec.md`](https://github.com/joelparkerhenderson/nhs-number-using-rust/blob/main/spec.md)
 //! §5 for the full contract.
 
 use crate::NHSNumber;

@@ -1,11 +1,11 @@
 [package]
 name = "nhs-number"
-version = "1.0.2"
+version = "1.0.3"
 edition = "2024"
 authors = ["Joel Parker Henderson <joel@joelparkerhenderson.com>"]
 description = "United Kingdom (UK) National Health Service (NHS) Number — parse, format, and validate the ten-digit identifier used by UK NHS England, UK NHS Scotland, UK NHS Wales, and UK NHS Isle of Man."
 license = "MIT OR Apache-2.0 OR GPL-2.0 OR GPL-3.0 OR BSD-3-Clause"
-repository = "https://github.com/joelparkerhenderson/nhs-number/"
+repository = "https://github.com/joelparkerhenderson/nhs-number-using-rust/"
 readme = "README.md"
 keywords = ["health", "nhs", "identifier", "checksum"]
 categories = ["science", "data-structures", "value-formatting"]

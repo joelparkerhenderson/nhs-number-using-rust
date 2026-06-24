@@ -92,6 +92,6 @@ fully worked examples.
 ### Where should I report a bug or suggest a change?
 
 Open an issue at
-<https://github.com/joelparkerhenderson/nhs-number/issues>, or email the
+<https://github.com/joelparkerhenderson/nhs-number-using-rust/issues>, or email the
 maintainer at
 [joel@joelparkerhenderson.com](mailto:joel@joelparkerhenderson.com).

@@ -2,9 +2,9 @@
 //!
 //! **[documentation](https://docs.rs/nhs-number/)**
 //! •
-//! **[source](https://github.com/joelparkerhenderson/nhs-number)**
+//! **[source](https://github.com/joelparkerhenderson/nhs-number-using-rust)**
 //! •
-//! **[llms.txt](https://raw.githubusercontent.com/joelparkerhenderson/nhs-number/refs/heads/main/llms.txt)**
+//! **[llms.txt](https://raw.githubusercontent.com/joelparkerhenderson/nhs-number-using-rust/refs/heads/main/llms.txt)**
 //! •
 //! **[crate](https://crates.io/crates/nhs-number)**
 //! •

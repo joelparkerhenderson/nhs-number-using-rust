@@ -1,12 +1,22 @@
 # Crate Documentation
 
-**Version:** 1.0.1
+**Version:** 2.0.0
 
-**Format Version:** 43
+**Format Version:** 57
 
 # Module `nhs_number`
 
 # NHS Number
+
+**[documentation](https://docs.rs/nhs-number/)**
+•
+**[source](https://github.com/joelparkerhenderson/nhs-number-using-rust)**
+•
+**[llms.txt](https://raw.githubusercontent.com/joelparkerhenderson/nhs-number-using-rust/refs/heads/main/llms.txt)**
+•
+**[crate](https://crates.io/crates/nhs-number)**
+•
+**[email](mailto:joel@joelparkerhenderson.com)**
 
 A National Health Service (NHS) Number is a unique number allocated in a shared
 numbering scheme to registered users of the public health services in
@@ -70,32 +80,106 @@ minus its position. Using the number 943 476 5919 as an example:
 * A checksum of 11 is represented by 0 in the final NHS Number. If the checksum
   is 10 then the number is not valid.
 
-## Examples
+## Quick start
+
+Parse, validate, and re-render an NHS Number:
 
 ```rust
-use nhs_number::*;
+use nhs_number::NHSNumber;
 use std::str::FromStr;
- 
-// NHS Number that we can use for testing purposes
-let str = "999 123 4560";
- 
-// Create a new NHS Number by converting from a string.
-let nhs_number = NHSNumber::from_str(str).unwrap();
 
-// Validate a NHS Number using the check digit algorithm.
-let valid: bool = nhs_number.validate_check_digit();
+// A test-safe number drawn from the reserved testable range.
+let input = "999 100 0003";
+
+let n = NHSNumber::from_str(input).unwrap();
+assert!(n.validate_check_digit());
+assert_eq!(n.to_string(), input);
 ```
+
+Compute a check digit from raw digits:
+
+```rust
+// The Wikipedia worked example: digits 9 4 3 4 7 6 5 9 1 → check digit 9.
+let digits = [9, 4, 3, 4, 7, 6, 5, 9, 1, 9];
+assert_eq!(nhs_number::calculate_check_digit(digits), 9);
+assert!(nhs_number::validate_check_digit(digits));
+```
+
+Generate a sample for tests:
+
+```rust
+use nhs_number::{NHSNumber, testable::TESTABLE_RANGE_INCLUSIVE};
+
+let sample = NHSNumber::testable_random_sample();
+assert!(TESTABLE_RANGE_INCLUSIVE.contains(&sample));
+```
+
+## Public surface (at a glance)
+
+- Value type: [`NHSNumber`]
+- Parsing: `<NHSNumber as FromStr>::from_str` — see [`mod@from_str`]
+- Errors: [`parse_error::ParseError`]
+- Check-digit functions: [`check_digit`], [`calculate_check_digit`],
+  [`validate_check_digit`] (and matching [`NHSNumber`] methods)
+- Range predicate: [`is_issuable_range`] (and the matching
+  [`NHSNumber`] method)
+- Formatting: [`format()`], [`Display`](std::fmt::Display) (and
+  [`Into<String>`])
+- String-form serde wrapper: [`serde_string::NHSNumberString`]
+- Testable range: [`mod@testable`] with [`testable::TESTABLE_MIN`],
+  [`testable::TESTABLE_MAX`], [`testable::TESTABLE_RANGE_INCLUSIVE`],
+  and [`testable::testable_random_sample`] (re-exported at the crate
+  root)
+
+## Specification
+
+The canonical behavioural specification for this crate lives in the
+`spec/` directory at the repo root, one file per section (start at
+`spec/index.md`). When the spec and the code disagree, the spec is
+the source of truth; see `AGENTS/spec-driven-development.md` for how
+to evolve both.
 
 
 ## Modules
 
 ## Module `from_str`
 
+`FromStr` parser for [`NHSNumber`].
+
+This module is the **only** entry point for parsing user-supplied
+strings into an `NHSNumber`. It accepts exactly two shapes, both ASCII:
+
+1. `"DDDDDDDDDD"` — ten contiguous decimal digits, no separators.
+2. `"DDD DDD DDDD"` — three groups of digits separated by single
+   ASCII spaces at positions 3 and 7.
+
+Every other input — including different lengths, hyphens, leading or
+trailing whitespace, doubled spaces, Unicode no-break spaces, Arabic-
+Indic digits, or any non-digit character — returns
+[`Err(ParseError)`](crate::parse_error::ParseError).
+
+The parser performs **no normalisation** of its input. Callers whose
+upstream sources produce variant forms (hyphen separators, mixed
+whitespace, full-width digits) must normalise before delegating here.
+
+See [`spec/index.md`](https://github.com/joelparkerhenderson/nhs-number-using-rust/blob/main/spec/index.md)
+§5 for the full contract.
+
 ```rust
 pub mod from_str { /* ... */ }
 ```
 
 ## Module `parse_error`
+
+The error type returned by [`NHSNumber::from_str`](crate::NHSNumber).
+
+`ParseError` is a zero-sized unit struct that signals "this string is
+not a syntactically valid NHS Number". It deliberately carries no
+detail — callers who need a richer taxonomy (wrong length, wrong
+separator, non-digit character, …) wrap or map it at the parse site.
+
+See [`spec/index.md`](https://github.com/joelparkerhenderson/nhs-number-using-rust/blob/main/spec/index.md)
+§12 for the design rationale.
 
 ```rust
 pub mod parse_error { /* ... */ }
@@ -105,7 +189,58 @@ pub mod parse_error { /* ... */ }
 
 #### Struct `ParseError`
 
-NHS Number Parse Error, which is for the implementation `FromStr`.
+Error returned by `<NHSNumber as FromStr>::from_str` for any string
+that is not one of the two accepted shapes (see
+[`spec/05-string-forms.md`] §5).
+
+`ParseError` is a unit struct — every error value compares equal:
+
+```rust
+use nhs_number::NHSNumber;
+use nhs_number::parse_error::ParseError;
+use std::str::FromStr;
+
+let a = NHSNumber::from_str("not even close").unwrap_err();
+let b = NHSNumber::from_str("wrong length").unwrap_err();
+assert_eq!(a, b);
+assert_eq!(a, ParseError);
+```
+
+To map it to your own richer error type:
+
+```rust
+use nhs_number::NHSNumber;
+use std::str::FromStr;
+
+#[derive(Debug, PartialEq)]
+enum MyError {
+    BadNhsNumber(String),
+}
+
+let bad = "not a number";
+let result: Result<NHSNumber, MyError> =
+    NHSNumber::from_str(bad).map_err(|_| MyError::BadNhsNumber(bad.into()));
+assert_eq!(result, Err(MyError::BadNhsNumber("not a number".into())));
+```
+
+`ParseError` also implements [`Display`](std::fmt::Display) and
+[`std::error::Error`], so it flows through `?` into boxed-error
+stacks without manual mapping:
+
+```rust
+use nhs_number::NHSNumber;
+use std::error::Error;
+use std::str::FromStr;
+
+fn parse(s: &str) -> Result<NHSNumber, Box<dyn Error>> {
+    Ok(NHSNumber::from_str(s)?)
+}
+
+assert!(parse("999 100 0003").is_ok());
+assert!(parse("not a number").is_err());
+```
+
+[`spec/05-string-forms.md`]: https://github.com/joelparkerhenderson/nhs-number-using-rust/blob/main/spec/05-string-forms.md
 
 ```rust
 pub struct ParseError;
@@ -115,34 +250,9 @@ pub struct ParseError;
 
 ###### Trait Implementations
 
-- **TryFrom**
+- **Any**
   - ```rust
-    fn try_from(value: U) -> Result<T, <T as TryFrom<U>>::Error> { /* ... */ }
-    ```
-
-- **VZip**
-  - ```rust
-    fn vzip(self: Self) -> V { /* ... */ }
-    ```
-
-- **Debug**
-  - ```rust
-    fn fmt(self: &Self, f: &mut $crate::fmt::Formatter<''_>) -> $crate::fmt::Result { /* ... */ }
-    ```
-
-- **Send**
-- **Freeze**
-- **Unpin**
-- **Into**
-  - ```rust
-    fn into(self: Self) -> U { /* ... */ }
-    ```
-    Calls `U::from(self)`.
-
-- **StructuralPartialEq**
-- **BorrowMut**
-  - ```rust
-    fn borrow_mut(self: &mut Self) -> &mut T { /* ... */ }
+    fn type_id(self: &Self) -> TypeId { /* ... */ }
     ```
 
 - **Borrow**
@@ -150,32 +260,332 @@ pub struct ParseError;
     fn borrow(self: &Self) -> &T { /* ... */ }
     ```
 
+- **BorrowMut**
+  - ```rust
+    fn borrow_mut(self: &mut Self) -> &mut T { /* ... */ }
+    ```
+
+- **Debug**
+  - ```rust
+    fn fmt(self: &Self, f: &mut $crate::fmt::Formatter<''_>) -> $crate::fmt::Result { /* ... */ }
+    ```
+
+- **Display**
+  - ```rust
+    fn fmt(self: &Self, f: &mut std::fmt::Formatter<''_>) -> std::fmt::Result { /* ... */ }
+    ```
+
+- **Eq**
+- **Error**
+- **Freeze**
 - **From**
   - ```rust
     fn from(t: T) -> T { /* ... */ }
     ```
     Returns the argument unchanged.
 
+- **Into**
+  - ```rust
+    fn into(self: Self) -> U { /* ... */ }
+    ```
+    Calls `U::from(self)`.
+
 - **PartialEq**
   - ```rust
     fn eq(self: &Self, other: &ParseError) -> bool { /* ... */ }
     ```
 
-- **Sync**
 - **RefUnwindSafe**
-- **Eq**
-- **Any**
+- **Send**
+- **StructuralPartialEq**
+- **Sync**
+- **ToString**
   - ```rust
-    fn type_id(self: &Self) -> TypeId { /* ... */ }
+    fn to_string(self: &Self) -> String { /* ... */ }
     ```
 
-- **UnwindSafe**
+- **TryFrom**
+  - ```rust
+    fn try_from(value: U) -> Result<T, <T as TryFrom<U>>::Error> { /* ... */ }
+    ```
+
 - **TryInto**
   - ```rust
     fn try_into(self: Self) -> Result<U, <U as TryFrom<T>>::Error> { /* ... */ }
     ```
 
+- **Unpin**
+- **UnsafeUnpin**
+- **UnwindSafe**
+## Module `serde_string`
+
+Opt-in serde wrapper that puts the **canonical string form** on the
+wire instead of the default `{ "digits": [...] }` struct shape.
+
+Wrap an [`NHSNumber`] in [`NHSNumberString`] when your wire format
+wants the human-readable `"DDD DDD DDDD"` form:
+
+- **Serialize** renders via [`Display`](std::fmt::Display) — always
+  the twelve-character canonical form (`spec/05-string-forms.md` §5.1).
+- **Deserialize** parses via [`FromStr`] — it
+  accepts exactly the two documented shapes (`"DDDDDDDDDD"` and
+  `"DDD DDD DDDD"`, `spec/05-string-forms.md` §5.2) and therefore **guarantees every
+  digit is in `0..=9`**.
+
+The deserialisation error message never echoes the rejected input,
+so a near-miss NHS Number cannot leak into logs through the error
+path (see `AGENTS/safety.md` §3).
+
+See `spec/11-serialisation.md` §11.2 (rule R22) for the contract.
+
+Example — round-trip through JSON:
+
+```rust
+use nhs_number::NHSNumber;
+use nhs_number::serde_string::NHSNumberString;
+use std::str::FromStr;
+
+let n = NHSNumber::from_str("999 100 0003").unwrap();
+let wrapped = NHSNumberString(n);
+
+let json = serde_json::to_string(&wrapped).unwrap();
+assert_eq!(json, r#""999 100 0003""#);
+
+let back: NHSNumberString = serde_json::from_str(&json).unwrap();
+assert_eq!(back.0, n);
+```
+
+```rust
+pub mod serde_string { /* ... */ }
+```
+
+### Types
+
+#### Struct `NHSNumberString`
+
+Newtype that serialises the wrapped [`NHSNumber`] as its canonical
+`"DDD DDD DDDD"` string and deserialises via the crate's
+[`FromStr`] parser.
+
+The inner value is a public tuple field, so wrapping and unwrapping
+are plain constructor / field syntax:
+
+```rust
+use nhs_number::NHSNumber;
+use nhs_number::serde_string::NHSNumberString;
+
+let n = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 3]);
+let wrapped = NHSNumberString(n);
+let unwrapped: NHSNumber = wrapped.0;
+assert_eq!(unwrapped, n);
+```
+
+`From` conversions are provided in both directions:
+
+```rust
+use nhs_number::NHSNumber;
+use nhs_number::serde_string::NHSNumberString;
+
+let n = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 3]);
+let wrapped = NHSNumberString::from(n);
+let back = NHSNumber::from(wrapped);
+assert_eq!(back, n);
+```
+
+Deserialisation accepts both documented input shapes and rejects
+everything else, exactly like [`FromStr`]:
+
+```rust
+use nhs_number::serde_string::NHSNumberString;
+
+let tight: NHSNumberString = serde_json::from_str(r#""9991000003""#).unwrap();
+let canonical: NHSNumberString = serde_json::from_str(r#""999 100 0003""#).unwrap();
+assert_eq!(tight, canonical);
+
+assert!(serde_json::from_str::<NHSNumberString>(r#""999-100-0003""#).is_err());
+```
+
+
+```rust
+pub struct NHSNumberString(pub crate::NHSNumber);
+```
+
+##### Fields
+
+| Index | Type | Documentation |
+|-------|------|---------------|
+| 0 | `crate::NHSNumber` |  |
+
+##### Implementations
+
+###### Trait Implementations
+
+- **Any**
+  - ```rust
+    fn type_id(self: &Self) -> TypeId { /* ... */ }
+    ```
+
+- **Borrow**
+  - ```rust
+    fn borrow(self: &Self) -> &T { /* ... */ }
+    ```
+
+- **BorrowMut**
+  - ```rust
+    fn borrow_mut(self: &mut Self) -> &mut T { /* ... */ }
+    ```
+
+- **Clone**
+  - ```rust
+    fn clone(self: &Self) -> NHSNumberString { /* ... */ }
+    ```
+
+- **CloneToUninit**
+  - ```rust
+    unsafe fn clone_to_uninit(self: &Self, dest: *mut u8) { /* ... */ }
+    ```
+
+- **Copy**
+- **Debug**
+  - ```rust
+    fn fmt(self: &Self, f: &mut $crate::fmt::Formatter<''_>) -> $crate::fmt::Result { /* ... */ }
+    ```
+
+- **Deserialize**
+  - ```rust
+    fn deserialize<D>(deserializer: D) -> Result<Self, <D as >::Error>
+where
+    D: Deserializer<''de> { /* ... */ }
+    ```
+
+- **DeserializeOwned**
+- **Display**
+  - ```rust
+    fn fmt(self: &Self, f: &mut fmt::Formatter<''_>) -> fmt::Result { /* ... */ }
+    ```
+
+- **Eq**
+- **Freeze**
+- **From**
+  - ```rust
+    fn from(t: T) -> T { /* ... */ }
+    ```
+    Returns the argument unchanged.
+
+  - ```rust
+    fn from(n: NHSNumber) -> Self { /* ... */ }
+    ```
+
+  - ```rust
+    fn from(w: NHSNumberString) -> Self { /* ... */ }
+    ```
+
+- **FromStr**
+  - ```rust
+    fn from_str(s: &str) -> Result<Self, <Self as >::Err> { /* ... */ }
+    ```
+
+- **Hash**
+  - ```rust
+    fn hash<__H: $crate::hash::Hasher>(self: &Self, state: &mut __H) { /* ... */ }
+    ```
+
+- **Into**
+  - ```rust
+    fn into(self: Self) -> U { /* ... */ }
+    ```
+    Calls `U::from(self)`.
+
+- **Ord**
+  - ```rust
+    fn cmp(self: &Self, other: &NHSNumberString) -> $crate::cmp::Ordering { /* ... */ }
+    ```
+
+- **PartialEq**
+  - ```rust
+    fn eq(self: &Self, other: &NHSNumberString) -> bool { /* ... */ }
+    ```
+
+- **PartialOrd**
+  - ```rust
+    fn partial_cmp(self: &Self, other: &NHSNumberString) -> $crate::option::Option<$crate::cmp::Ordering> { /* ... */ }
+    ```
+
+- **RefUnwindSafe**
+- **Send**
+- **Serialize**
+  - ```rust
+    fn serialize<S>(self: &Self, serializer: S) -> Result<<S as >::Ok, <S as >::Error>
+where
+    S: Serializer { /* ... */ }
+    ```
+
+- **StructuralPartialEq**
+- **Sync**
+- **ToOwned**
+  - ```rust
+    fn to_owned(self: &Self) -> T { /* ... */ }
+    ```
+
+  - ```rust
+    fn clone_into(self: &Self, target: &mut T) { /* ... */ }
+    ```
+
+- **ToString**
+  - ```rust
+    fn to_string(self: &Self) -> String { /* ... */ }
+    ```
+
+- **TryFrom**
+  - ```rust
+    fn try_from(value: U) -> Result<T, <T as TryFrom<U>>::Error> { /* ... */ }
+    ```
+
+- **TryInto**
+  - ```rust
+    fn try_into(self: Self) -> Result<U, <U as TryFrom<T>>::Error> { /* ... */ }
+    ```
+
+- **Unpin**
+- **UnsafeUnpin**
+- **UnwindSafe**
 ## Module `testable`
+
+The reserved **testable** NHS Number range and a random sampler.
+
+The NHS reserves `999 000 0000` – `999 999 9999` as a range that is
+syntactically valid (it can pass the modulo-11 check digit) but is
+guaranteed **never** to be issued to a real patient. Use it for unit
+tests, doc-tests, fixtures, demos, and any other situation where a
+real number would be inappropriate.
+
+This module exposes three lazy statics describing the range and a
+random sampler:
+
+- [`TESTABLE_MIN`] — `999 000 0000`
+- [`TESTABLE_MAX`] — `999 999 9999`
+- [`TESTABLE_RANGE_INCLUSIVE`] — an inclusive [`RangeInclusive`] over
+  the above bounds; useful with [`RangeInclusive::contains`].
+- [`testable_random_sample`] — returns a random [`NHSNumber`] whose
+  first three digits are `9, 9, 9` and whose remaining seven digits
+  are drawn uniformly from `0..=9`.
+
+The crate re-exports this module's contents at the crate root via
+`pub use testable::*;`, so callers can write
+`nhs_number::testable_random_sample()` and `*nhs_number::TESTABLE_MIN`
+without spelling out the module path.
+
+See [`spec/index.md`](https://github.com/joelparkerhenderson/nhs-number-using-rust/blob/main/spec/index.md)
+§7.3 and §8 for the contract.
+
+Example — confirm a constructed number lies in the testable range:
+
+```rust
+use nhs_number::{NHSNumber, testable::*};
+
+let n = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 3]);
+assert!(TESTABLE_RANGE_INCLUSIVE.contains(&n));
+```
 
 ```rust
 pub mod testable { /* ... */ }
@@ -187,18 +597,40 @@ pub mod testable { /* ... */ }
 
 **Attributes:**
 
-- `#[allow(dead_code)]`
+- `Other("#[allow(dead_code)]")`
 
-Generate a NHS Number testable range random sample.
-The generated number is valid but is never going to be issued.
+Return a random [`NHSNumber`] in the testable range.
 
-Example:
+Every returned value has `digits[0..3] == [9, 9, 9]`; the remaining
+seven digits are drawn uniformly from `0..=9` using [`rand::rng`].
+
+**The tenth digit is drawn randomly, not computed** — so roughly nine
+in ten samples have an invalid modulo-11 check digit. This is
+intentional; it lets tests exercise the rejection branch of
+[`validate_check_digit`](crate::validate_check_digit). For a valid
+random sample, either loop until `validate_check_digit()` returns
+`true`, or pick the first nine digits yourself and compute the tenth.
+
+Example — the sample is always in the testable range:
 
 ```rust
 use nhs_number::{NHSNumber, testable::*};
-let nhs_number = testable_random_sample();
-assert!(nhs_number >= *TESTABLE_MIN);
-assert!(nhs_number <= *TESTABLE_MAX);
+
+let n = testable_random_sample();
+assert!(n >= *TESTABLE_MIN);
+assert!(n <= *TESTABLE_MAX);
+assert_eq!(&n.digits[0..3], &[9, 9, 9]);
+```
+
+Example — generate a valid-by-checksum random testable number:
+
+```rust
+use nhs_number::NHSNumber;
+
+let n = std::iter::from_fn(|| Some(NHSNumber::testable_random_sample()))
+    .find(|n| n.validate_check_digit())
+    .unwrap();
+assert!(n.validate_check_digit());
 ```
 
 
@@ -212,18 +644,26 @@ pub fn testable_random_sample() -> crate::NHSNumber { /* ... */ }
 
 **Attributes:**
 
-- `#[allow(dead_code)]`
+- `Other("#[allow(dead_code)]")`
 
-Get the NHS Number testable range minimum value.
-This number is valid but is never going to be issued.
+Inclusive lower bound of the testable NHS Number range — `999 000 0000`.
 
-Example:
+Backed by [`LazyLock`], so dereference with `*` to read the value:
 
 ```rust
-use nhs_number::NHSNumber;
 use nhs_number::testable::TESTABLE_MIN;
-let nhs_number = NHSNumber { digits: [9, 9, 9, 0, 1, 2, 3, 4, 5, 6] };
-assert!(nhs_number >= *TESTABLE_MIN);
+
+assert_eq!(TESTABLE_MIN.to_string(), "999 000 0000");
+assert_eq!((*TESTABLE_MIN).digits, [9, 9, 9, 0, 0, 0, 0, 0, 0, 0]);
+```
+
+Use it as a guard rail when accepting numbers from a "testable" path:
+
+```rust
+use nhs_number::{NHSNumber, testable::TESTABLE_MIN};
+
+let n = NHSNumber::new([9, 9, 9, 0, 1, 2, 3, 4, 5, 6]);
+assert!(n >= *TESTABLE_MIN);
 ```
 
 
@@ -235,18 +675,27 @@ pub static TESTABLE_MIN: std::sync::LazyLock<crate::NHSNumber> = _;
 
 **Attributes:**
 
-- `#[allow(dead_code)]`
+- `Other("#[allow(dead_code)]")`
 
-Get the NHS Number testable range maximum value.
-This number is valid but is never going to be issued.
+Inclusive upper bound of the testable NHS Number range — `999 999 9999`.
 
-Example:
+Backed by [`LazyLock`], so dereference with `*` to read the value:
 
 ```rust
-use nhs_number::NHSNumber;
 use nhs_number::testable::TESTABLE_MAX;
-let nhs_number = NHSNumber { digits: [9, 9, 9, 0, 1, 2, 3, 4, 5, 6] };
-assert!(nhs_number <= *TESTABLE_MAX);
+
+assert_eq!(TESTABLE_MAX.to_string(), "999 999 9999");
+assert_eq!((*TESTABLE_MAX).digits, [9; 10]);
+```
+
+Use it together with [`TESTABLE_MIN`] as a half of a manual range
+check:
+
+```rust
+use nhs_number::{NHSNumber, testable::TESTABLE_MAX};
+
+let n = NHSNumber::new([9, 9, 9, 0, 1, 2, 3, 4, 5, 6]);
+assert!(n <= *TESTABLE_MAX);
 ```
 
 
@@ -258,17 +707,23 @@ pub static TESTABLE_MAX: std::sync::LazyLock<crate::NHSNumber> = _;
 
 **Attributes:**
 
-- `#[allow(dead_code)]`
+- `Other("#[allow(dead_code)]")`
 
-Get the NHS Number testable range.
-This range is valid but is never going to be issued.
+The inclusive testable range, `[TESTABLE_MIN, TESTABLE_MAX]`.
 
-Example:
+Backed by [`LazyLock`]; the inner value supports
+[`RangeInclusive::contains`]:
+
 ```rust
- use nhs_number::{NHSNumber, testable::*};
-let nhs_number = NHSNumber { digits: [9, 9, 9, 0, 1, 2, 3, 4, 5, 6] };
- assert!(TESTABLE_RANGE_INCLUSIVE.contains(&nhs_number));
+use nhs_number::{NHSNumber, testable::TESTABLE_RANGE_INCLUSIVE};
+
+let in_range = NHSNumber::new([9, 9, 9, 0, 1, 2, 3, 4, 5, 6]);
+assert!(TESTABLE_RANGE_INCLUSIVE.contains(&in_range));
+
+let out_of_range = NHSNumber::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+assert!(!TESTABLE_RANGE_INCLUSIVE.contains(&out_of_range));
 ```
+
 
 ```rust
 pub static TESTABLE_RANGE_INCLUSIVE: std::sync::LazyLock<std::ops::RangeInclusive<crate::NHSNumber>> = _;
@@ -278,20 +733,84 @@ pub static TESTABLE_RANGE_INCLUSIVE: std::sync::LazyLock<std::ops::RangeInclusiv
 
 ### Struct `NHSNumber`
 
-NHS Number is a unique identifier for patients in the National Health
-Service of England and the Isle of Man.
+A ten-digit NHS Number — the unique identifier allocated to patients
+of the National Health Service of England and the Isle of Man.
 
-Reference:
+The struct wraps a fixed-length `[i8; 10]` digit array. Each element
+is expected to be in `0..=9`; the parser ([`FromStr`](std::str::FromStr))
+enforces this for caller-supplied strings, but
+[`new`](NHSNumber::new) and the public `digits` field do not.
 
-* [National Health Service (NHS)](https://en.wikipedia.org/wiki/National_Health_Service)
+References:
 
-* [NHS Number](https://en.wikipedia.org/wiki/NHS_number)
+- [National Health Service (NHS)](https://en.wikipedia.org/wiki/National_Health_Service)
+- [NHS Number](https://en.wikipedia.org/wiki/NHS_number)
+
+# Construction
+
+Use either [`NHSNumber::new`] or a struct literal — the `digits` field
+is public, and both forms produce the same value:
 
 ```rust
 use nhs_number::NHSNumber;
-let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
-let nhs_number = NHSNumber { digits: digits };
+
+let via_new = NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 3]);
+let via_literal = NHSNumber { digits: [9, 9, 9, 1, 0, 0, 0, 0, 0, 3] };
+assert_eq!(via_new, via_literal);
 ```
+
+# Parse, validate, display
+
+Parse from a string with [`FromStr`](std::str::FromStr); validate the
+check digit; render back to the canonical `"DDD DDD DDDD"` form:
+
+```rust
+use nhs_number::NHSNumber;
+use std::str::FromStr;
+
+let n = NHSNumber::from_str("999 100 0003").unwrap();
+assert!(n.validate_check_digit());
+assert_eq!(n.to_string(), "999 100 0003");
+```
+
+# Ordering and equality
+
+`NHSNumber` derives `PartialEq`/`Eq` (element-wise) and `PartialOrd`/`Ord`
+(lexicographic on the digit array — which matches natural numeric
+ordering since every value has the same width and the most-significant
+digit comes first):
+
+```rust
+use nhs_number::NHSNumber;
+
+let a = NHSNumber::new([0; 10]);
+let b = NHSNumber::new([9; 10]);
+assert!(a < b);
+```
+
+This makes `NHSNumber` directly usable as a `BTreeSet` element or a
+`BTreeMap` key. It also derives `Hash` (consistent with `Eq`), so it
+works as a `HashMap` / `HashSet` key too:
+
+```rust
+use nhs_number::NHSNumber;
+use std::collections::HashMap;
+
+let mut map: HashMap<NHSNumber, &'static str> = HashMap::new();
+map.insert(NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 3]), "fixture");
+assert_eq!(
+    map.get(&NHSNumber::new([9, 9, 9, 1, 0, 0, 0, 0, 0, 3])),
+    Some(&"fixture")
+);
+```
+
+# Serialisation
+
+`Serialize` is derived (wire shape `{ "digits": [..10] }`).
+`Deserialize` is a hand-written impl with the same wire shape that
+**validates** every digit is in `0..=9` — see the impl below and
+`spec/11-serialisation.md` §11.1. For the human-readable `"DDD DDD DDDD"` wire form,
+wrap the value in [`serde_string::NHSNumberString`].
 
 
 ```rust
@@ -313,40 +832,141 @@ pub struct NHSNumber {
 - ```rust
   pub fn new(digits: [i8; 10]) -> Self { /* ... */ }
   ```
-  Create a new NHS Number instance with the provided digits.
+  Construct an `NHSNumber` from a ten-digit array.
 
 - ```rust
   pub fn check_digit(self: &Self) -> i8 { /* ... */ }
   ```
-  Get the NHS Number check digit i.e. the last digit.
+  Return the **stored** tenth digit — the check digit as it appears
 
 - ```rust
   pub fn calculate_check_digit(self: &Self) -> i8 { /* ... */ }
   ```
-  Calculate the NHS Number check digit using a checksum algorithm.
+  Compute the check digit that the first nine digits **should** have,
 
 - ```rust
   pub fn validate_check_digit(self: &Self) -> bool { /* ... */ }
   ```
-  Validate the NHS Number check digit equals the calculated check digit.
+  Return `true` iff the stored check digit matches the one the NHS
+
+- ```rust
+  pub fn is_issuable_range(self: &Self) -> bool { /* ... */ }
+  ```
+  Return `true` iff the first nine digits fall inside a range the
 
 - ```rust
   pub fn testable_random_sample() -> NHSNumber { /* ... */ }
   ```
-  Generate a testable random sample NHS Number.
+  Return a random `NHSNumber` from the reserved **testable** range
 
 ##### Trait Implementations
-
-- **TryFrom**
-  - ```rust
-    fn try_from(value: U) -> Result<T, <T as TryFrom<U>>::Error> { /* ... */ }
-    ```
 
 - **Any**
   - ```rust
     fn type_id(self: &Self) -> TypeId { /* ... */ }
     ```
 
+- **Borrow**
+  - ```rust
+    fn borrow(self: &Self) -> &T { /* ... */ }
+    ```
+
+- **BorrowMut**
+  - ```rust
+    fn borrow_mut(self: &mut Self) -> &mut T { /* ... */ }
+    ```
+
+- **Clone**
+  - ```rust
+    fn clone(self: &Self) -> NHSNumber { /* ... */ }
+    ```
+
+- **CloneToUninit**
+  - ```rust
+    unsafe fn clone_to_uninit(self: &Self, dest: *mut u8) { /* ... */ }
+    ```
+
+- **Copy**
+- **Debug**
+  - ```rust
+    fn fmt(self: &Self, f: &mut $crate::fmt::Formatter<''_>) -> $crate::fmt::Result { /* ... */ }
+    ```
+
+- **Deserialize**
+  - ```rust
+    fn deserialize<D>(deserializer: D) -> Result<Self, <D as >::Error>
+where
+    D: serde::Deserializer<''de> { /* ... */ }
+    ```
+
+- **DeserializeOwned**
+- **Display**
+  - ```rust
+    fn fmt(self: &Self, f: &mut fmt::Formatter<''_>) -> fmt::Result { /* ... */ }
+    ```
+
+- **Eq**
+- **Freeze**
+- **From**
+  - ```rust
+    fn from(t: T) -> T { /* ... */ }
+    ```
+    Returns the argument unchanged.
+
+  - ```rust
+    fn from(n: NHSNumber) -> Self { /* ... */ }
+    ```
+
+  - ```rust
+    fn from(w: NHSNumberString) -> Self { /* ... */ }
+    ```
+
+  - ```rust
+    fn from(n: NHSNumber) -> String { /* ... */ }
+    ```
+
+- **FromStr**
+  - ```rust
+    fn from_str(s: &str) -> Result<Self, <Self as >::Err> { /* ... */ }
+    ```
+
+- **Hash**
+  - ```rust
+    fn hash<__H: $crate::hash::Hasher>(self: &Self, state: &mut __H) { /* ... */ }
+    ```
+
+- **Into**
+  - ```rust
+    fn into(self: Self) -> U { /* ... */ }
+    ```
+    Calls `U::from(self)`.
+
+- **Ord**
+  - ```rust
+    fn cmp(self: &Self, other: &NHSNumber) -> $crate::cmp::Ordering { /* ... */ }
+    ```
+
+- **PartialEq**
+  - ```rust
+    fn eq(self: &Self, other: &NHSNumber) -> bool { /* ... */ }
+    ```
+
+- **PartialOrd**
+  - ```rust
+    fn partial_cmp(self: &Self, other: &NHSNumber) -> $crate::option::Option<$crate::cmp::Ordering> { /* ... */ }
+    ```
+
+- **RefUnwindSafe**
+- **Send**
+- **Serialize**
+  - ```rust
+    fn serialize<__S>(self: &Self, __serializer: __S) -> _serde::__private228::Result<<__S as >::Ok, <__S as >::Error>
+where
+    __S: _serde::Serializer { /* ... */ }
+    ```
+
+- **StructuralPartialEq**
+- **Sync**
 - **ToOwned**
   - ```rust
     fn to_owned(self: &Self) -> T { /* ... */ }
@@ -356,139 +976,53 @@ pub struct NHSNumber {
     fn clone_into(self: &Self, target: &mut T) { /* ... */ }
     ```
 
-- **Borrow**
-  - ```rust
-    fn borrow(self: &Self) -> &T { /* ... */ }
-    ```
-
-- **Sync**
-- **CloneToUninit**
-  - ```rust
-    unsafe fn clone_to_uninit(self: &Self, dest: *mut u8) { /* ... */ }
-    ```
-
-- **From**
-  - ```rust
-    fn from(t: T) -> T { /* ... */ }
-    ```
-    Returns the argument unchanged.
-
-- **Deserialize**
-  - ```rust
-    fn deserialize<__D>(__deserializer: __D) -> _serde::__private::Result<Self, <__D as >::Error>
-where
-    __D: _serde::Deserializer<''de> { /* ... */ }
-    ```
-
-- **Unpin**
-- **Display**
-  - ```rust
-    fn fmt(self: &Self, f: &mut fmt::Formatter<''_>) -> fmt::Result { /* ... */ }
-    ```
-
-- **Send**
-- **TryInto**
-  - ```rust
-    fn try_into(self: Self) -> Result<U, <U as TryFrom<T>>::Error> { /* ... */ }
-    ```
-
-- **FromStr**
-  - ```rust
-    fn from_str(s: &str) -> Result<Self, <Self as >::Err> { /* ... */ }
-    ```
-
-- **Serialize**
-  - ```rust
-    fn serialize<__S>(self: &Self, __serializer: __S) -> _serde::__private::Result<<__S as >::Ok, <__S as >::Error>
-where
-    __S: _serde::Serializer { /* ... */ }
-    ```
-
-- **Ord**
-  - ```rust
-    fn cmp(self: &Self, other: &NHSNumber) -> $crate::cmp::Ordering { /* ... */ }
-    ```
-
-- **Copy**
-- **BorrowMut**
-  - ```rust
-    fn borrow_mut(self: &mut Self) -> &mut T { /* ... */ }
-    ```
-
-- **DeserializeOwned**
-- **StructuralPartialEq**
-- **PartialOrd**
-  - ```rust
-    fn partial_cmp(self: &Self, other: &NHSNumber) -> $crate::option::Option<$crate::cmp::Ordering> { /* ... */ }
-    ```
-
-- **Eq**
-- **Into**
-  - ```rust
-    fn into(self: Self) -> U { /* ... */ }
-    ```
-    Calls `U::from(self)`.
-
-  - ```rust
-    fn into(self: Self) -> String { /* ... */ }
-    ```
-
-- **PartialEq**
-  - ```rust
-    fn eq(self: &Self, other: &NHSNumber) -> bool { /* ... */ }
-    ```
-
-- **Clone**
-  - ```rust
-    fn clone(self: &Self) -> NHSNumber { /* ... */ }
-    ```
-
-- **UnwindSafe**
-- **VZip**
-  - ```rust
-    fn vzip(self: Self) -> V { /* ... */ }
-    ```
-
-- **RefUnwindSafe**
-- **Debug**
-  - ```rust
-    fn fmt(self: &Self, f: &mut $crate::fmt::Formatter<''_>) -> $crate::fmt::Result { /* ... */ }
-    ```
-
 - **ToString**
   - ```rust
     fn to_string(self: &Self) -> String { /* ... */ }
     ```
 
-- **Freeze**
+- **TryFrom**
+  - ```rust
+    fn try_from(value: U) -> Result<T, <T as TryFrom<U>>::Error> { /* ... */ }
+    ```
+
+- **TryInto**
+  - ```rust
+    fn try_into(self: Self) -> Result<U, <U as TryFrom<T>>::Error> { /* ... */ }
+    ```
+
+- **Unpin**
+- **UnsafeUnpin**
+- **UnwindSafe**
 ## Functions
 
 ### Function `format`
 
 **Attributes:**
 
-- `#[allow(dead_code)]`
+- `Other("#[allow(dead_code)]")`
 
-Format the NHS Number as a 10-digit number with spaces.
+Format a ten-digit array as the canonical `"DDD DDD DDDD"` string.
+
+Equivalent to [`NHSNumber::to_string`](std::string::ToString::to_string)
+(via the [`Display`](fmt::Display) impl) and to the [`Into<String>`]
+impl on `NHSNumber`. The two forms always agree.
 
 Example:
 
 ```rust
-let digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-let nhs_number_string = ::nhs_number::format(digits);
-assert_eq!(nhs_number_string, "012 345 6789");
+let s = nhs_number::format([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+assert_eq!(s, "012 345 6789");
 ```
 
-The NHS Number is formatted as a 10-digit number with spaces:
+Example — equivalence with the [`Display`](fmt::Display) impl:
 
-* 3 digits
-* space
-* 3 digits
-* space
-* 4 digits
+```rust
+use nhs_number::NHSNumber;
 
-This function output must be identical to the method
-[`NHSNumber::to_string`](NHSNumber::to_string).
+let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
+assert_eq!(nhs_number::format(digits), NHSNumber::new(digits).to_string());
+```
 
 
 ```rust
@@ -499,19 +1033,31 @@ pub fn format(digits: [i8; 10]) -> String { /* ... */ }
 
 **Attributes:**
 
-- `#[allow(dead_code)]`
+- `Other("#[allow(dead_code)]")`
 
-Get the NHS Number check digit i.e. the last digit.
+Return the **stored** tenth digit of a ten-digit array — the check
+digit as it appears in the input.
+
+This is a pure accessor: it does not compute or validate anything.
+Equivalent to [`NHSNumber::check_digit`] on the corresponding
+`NHSNumber`.
 
 Example:
 
 ```rust
 let digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-let check_digit = ::nhs_number::check_digit(digits);
-assert_eq!(check_digit, 9);
+assert_eq!(nhs_number::check_digit(digits), 9);
 ```
 
-This function is called by the method [`NHSNumber::check_digit`](NHSNumber::check_digit).
+Example — equivalence with [`NHSNumber::check_digit`]:
+
+```rust
+use nhs_number::NHSNumber;
+
+let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
+let n = NHSNumber::new(digits);
+assert_eq!(nhs_number::check_digit(digits), n.check_digit());
+```
 
 
 ```rust
@@ -522,23 +1068,146 @@ pub fn check_digit(digits: [i8; 10]) -> i8 { /* ... */ }
 
 **Attributes:**
 
-- `#[allow(dead_code)]`
+- `Other("#[allow(dead_code)]")`
 
-Calculate the NHS Number check digit using a checksum algorithm.
+Compute the check digit for a ten-digit array using the NHS modulo-11
+algorithm (see `spec/06-check-digit-algorithm.md` §6).
 
-Example:
+**Algorithm:**
+
+1. Weight each of `digits[0..9]` by `10 − i` and sum the products.
+2. Take `sum % 11`; let `raw = 11 − (sum % 11)`, so `raw ∈ 1..=11`.
+3. Map: `raw == 11` → `0`; `raw == 10` → sentinel `10`; otherwise `raw`.
+
+**Return value `10` is a sentinel** meaning "no digit in `0..=9` can
+stand in as the check digit" — that case occurs when `sum % 11 == 1`.
+Because a stored check digit is always in `0..=9`, the sentinel can
+never equal a stored value, so [`validate_check_digit`] correctly
+returns `false` for such numbers.
+
+The function is **total**: it never panics and always returns a value
+in `0..=10`, even when digits lie outside `0..=9` (reachable via
+[`NHSNumber::new`], a struct literal, or serde deserialisation). It
+does **no** bounds checking, though — on out-of-range digits the
+result is mathematically meaningless at the spec level (see
+`spec/06-check-digit-algorithm.md` §6.4). The [`FromStr`](std::str::FromStr) parser is the
+only supported entry point for untrusted input.
+
+Example — typical case (`999 100 0003`, testable range):
 
 ```rust
-let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
-let check_digit = ::nhs_number::calculate_check_digit(digits);
-assert_eq!(check_digit, 0);
+let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
+assert_eq!(nhs_number::calculate_check_digit(digits), 3);
 ```
 
-This function is called by the method [`NHSNumber::calculate_check_digit`](NHSNumber::calculate_check_digit).
+Example — Wikipedia reference number `943 476 5919`:
+
+```rust
+let digits = [9, 4, 3, 4, 7, 6, 5, 9, 1, 9];
+assert_eq!(nhs_number::calculate_check_digit(digits), 9);
+```
+
+Example — the `raw == 11` branch (sum congruent to 0):
+
+```rust
+// `999 100 0100` — weighted sum 253, 253 % 11 == 0.
+let digits = [9, 9, 9, 1, 0, 0, 0, 1, 0, 0];
+assert_eq!(nhs_number::calculate_check_digit(digits), 0);
+```
+
+Example — the sentinel branch (sum congruent to 1):
+
+```rust
+// `999 123 4560` — weighted sum 320, 320 % 11 == 1, so no digit fits.
+let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+assert_eq!(nhs_number::calculate_check_digit(digits), 10);
+```
+
+Equivalent to [`NHSNumber::calculate_check_digit`] on the corresponding
+`NHSNumber`.
 
 
 ```rust
 pub fn calculate_check_digit(digits: [i8; 10]) -> i8 { /* ... */ }
+```
+
+### Function `validate_check_digit`
+
+**Attributes:**
+
+- `Other("#[allow(dead_code)]")`
+
+Return `true` iff the stored tenth digit equals the one
+[`calculate_check_digit`] would compute from the first nine.
+
+Returns `false` when:
+
+- the stored and calculated digits simply differ, **or**
+- the calculated value is the sentinel `10` (no digit can stand in;
+  see [`calculate_check_digit`]).
+
+Equivalent to [`NHSNumber::validate_check_digit`] on the corresponding
+`NHSNumber`.
+
+Example — a valid testable number:
+
+```rust
+let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 3];
+assert!(nhs_number::validate_check_digit(digits));
+```
+
+Example — a wrong stored check digit:
+
+```rust
+let digits = [9, 9, 9, 1, 0, 0, 0, 0, 0, 4]; // last digit should be 3
+assert!(!nhs_number::validate_check_digit(digits));
+```
+
+Example — the "no digit fits" branch (`sum % 11 == 1`):
+
+```rust
+let digits = [9, 9, 9, 1, 2, 3, 4, 5, 6, 0];
+assert!(!nhs_number::validate_check_digit(digits));
+```
+
+
+```rust
+pub fn validate_check_digit(digits: [i8; 10]) -> bool { /* ... */ }
+```
+
+### Function `is_issuable_range`
+
+**Attributes:**
+
+- `Other("#[allow(dead_code)]")`
+
+Return `true` iff the first nine digits of a ten-digit array fall
+inside a range the NHS currently issues, net of the ranges reserved
+for other systems (`spec/07-number-ranges.md` §7.5).
+
+Range check only — the tenth (check) digit is ignored, and digits
+outside `0..=9` return `false`. Equivalent to
+[`NHSNumber::is_issuable_range`] on the corresponding `NHSNumber`.
+
+Example — testable-range and all-zero values are not issuable:
+
+```rust
+assert!(!nhs_number::is_issuable_range([9, 9, 9, 1, 0, 0, 0, 0, 0, 3]));
+assert!(!nhs_number::is_issuable_range([0; 10]));
+```
+
+Example — a boundary value inside an issued range (stored check
+digit deliberately invalid; see `AGENTS/safety.md` §1):
+
+```rust
+let digits = [6, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+assert!(nhs_number::is_issuable_range(digits));
+assert!(!nhs_number::validate_check_digit(digits));
+```
+
+
+```rust
+pub fn is_issuable_range(digits: [i8; 10]) -> bool { /* ... */ }
 ```
 
 ## Re-exports

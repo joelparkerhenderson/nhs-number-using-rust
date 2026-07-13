@@ -1,6 +1,6 @@
 [package]
 name = "nhs-number"
-version = "1.0.3"
+version = "2.0.0"
 edition = "2024"
 authors = ["Joel Parker Henderson <joel@joelparkerhenderson.com>"]
 description = "United Kingdom (UK) National Health Service (NHS) Number — parse, format, and validate the ten-digit identifier used by UK NHS England, UK NHS Scotland, UK NHS Wales, and UK NHS Isle of Man."
@@ -14,6 +14,13 @@ include = ["src/**/*", "LICENSE.md", "README.md"]
 [dependencies]
 rand = "0.10.1"
 serde = { version = "1.0.228", features = ["derive"] }
+
+[dev-dependencies]
+# Property-based / fuzz-style testing of the parser and check-digit
+# arithmetic (see spec/13-testing-strategy.md §13 and the `fuzz` test sub-modules).
+proptest = "1"
+# Exercises the serde wire shape (spec/11-serialisation.md §11.1, rule R16) in tests.
+serde_json = "1"
 
 # Note: `rustdoc-llms` is a binary tool used during the release process to
 # regenerate `llms.txt` / `llms.json`. Install it separately:

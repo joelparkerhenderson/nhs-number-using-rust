@@ -22,7 +22,7 @@
 //! `nhs_number::testable_random_sample()` and `*nhs_number::TESTABLE_MIN`
 //! without spelling out the module path.
 //!
-//! See [`spec.md`](https://github.com/joelparkerhenderson/nhs-number-using-rust/blob/main/spec.md)
+//! See [`spec/index.md`](https://github.com/joelparkerhenderson/nhs-number-using-rust/blob/main/spec/index.md)
 //! §7.3 and §8 for the contract.
 //!
 //! Example — confirm a constructed number lies in the testable range:

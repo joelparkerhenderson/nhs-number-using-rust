@@ -9,7 +9,7 @@ single file, with no setup, invoked via `cargo run --example <name>`.
 | [parsing](parsing.rs)               | `FromStr` across the two accepted formats; error cases. |
 | [validation](validation.rs)         | Check-digit reading, calculation, and validation.   |
 | [testable](testable.rs)             | Working with the 999 000 0000 – 999 999 9999 range. |
-| [sorting](sorting.rs)               | `Ord`/`Eq` in `Vec::sort` and `BTreeSet`.           |
+| [sorting](sorting.rs)               | `Ord`/`Eq` in `Vec::sort`, `BTreeSet`, and `BTreeMap` keys. |
 | [generate_valid](generate_valid.rs) | Build a valid testable number from nine seed digits. |
 | [bulk_processing](bulk_processing.rs) | Parse + classify a batch of candidate inputs.     |
 

@@ -69,7 +69,7 @@ cargo test && cargo clippy --all-targets && cargo fmt -- --check
 
 **Touching the parser or validator (behavioural change):**
 
-1. Update [`spec.md`](../spec.md) to describe the new behaviour.
+1. Update [`spec/index.md`](../spec/index.md) to describe the new behaviour.
 2. Update tests to encode the new behaviour.
 3. Update the implementation.
 4. `cargo test` — should be green.
@@ -79,7 +79,7 @@ cargo test && cargo clippy --all-targets && cargo fmt -- --check
 
 **Adding a new public API:**
 
-1. Update [`spec.md`](../spec.md) to add the entry to the public surface.
+1. Update [`spec/index.md`](../spec/index.md) to add the entry to the public surface.
 2. Add the implementation.
 3. Add a unit test and a doc-test (see [`testing.md`](testing.md)).
 4. Add or update an entry in [`docs/api/index.md`](../docs/api/index.md).

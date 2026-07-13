@@ -26,11 +26,24 @@ each test's purpose is obvious from its path:
 | `boundaries` | Explicit coverage of the `sum % 11 ∈ {0, 1, 2..=10}` branches.   |
 | `ordering`   | `Ord`/`Eq`, `Vec::sort`, `BTreeSet`, `BTreeMap` use cases.       |
 | `traits`     | Trait-impl smoke tests (`Copy`, `Clone`, `Send`, `Sync`, serde). |
+| `adversarial`| Hostile digit arrays that bypass the parser; totality (§6.4).    |
+| `serialisation` | Exact serde wire shape (R16) and untrusted-payload behaviour. |
+| `concurrency`| Multithreaded use of parsing, statics, and the random sampler.   |
+| `ranges`     | The issuable-range predicate boundaries (§7.5).                  |
+| `fuzz`       | Property-based tests (`proptest`) over generated digit arrays.   |
+
+The parser has its own adversarial rejection tests and a property-based
+`fuzz` sub-module in `src/from_str.rs::tests`: the parser must never
+panic on arbitrary strings, must reject every corrupted canonical form,
+and anything it accepts must be exactly one of the two documented
+shapes. Property tests use the `proptest` dev-dependency and run a few
+hundred generated cases per property under plain `cargo test` — no
+nightly toolchain or separate fuzz harness required.
 
 New tests should land in the sub-module that matches their concern; do
 not invent a parallel layout. If a genuinely new concern appears (e.g.
 benchmarks, fuzz-target shims), add a sub-module here and reference it
-from `spec.md` §13.1.
+from `spec/13-testing-strategy.md` §13.1.
 
 ## The actual / expect pattern
 
@@ -70,6 +83,10 @@ example in the rendered docs compiles.
 - Round-trips: `parse → display → parse` must recover the original value.
 - Equivalence: every free function must match its `NHSNumber` method
   counterpart on identical input.
+- Adversarial input: NUL and control bytes, bidi overrides, lookalike and
+  non-ASCII digits, oversized payloads, out-of-range digit arrays that
+  bypass the parser (via `new` or serde). Nothing may panic; the parser
+  must reject; the check-digit functions must stay total (spec §6.4).
 
 ## Examples are tests too
 

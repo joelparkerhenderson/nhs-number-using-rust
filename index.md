@@ -6,7 +6,7 @@
 •
 **[crate](https://crates.io/crates/nhs-number)**
 •
-**[spec](spec.md)**
+**[spec](spec/index.md)**
 •
 **[llms.txt](https://raw.githubusercontent.com/joelparkerhenderson/nhs-number-using-rust/refs/heads/main/llms.txt)**
 •
@@ -39,7 +39,7 @@ References:
 | Order, equality, serialise          | `Ord`, `Eq`, `serde::{Serialize, Deserialize}`   |
 
 For the full public surface, see [`docs/api/index.md`](docs/api/index.md).
-For the canonical behavioural specification, see [`spec.md`](spec.md).
+For the canonical behavioural specification, see [`spec/index.md`](spec/index.md).
 
 ## Install
 
@@ -135,7 +135,7 @@ For runnable programs, see [`examples/`](examples/).
 
 | Where                                              | What                                      |
 | -------------------------------------------------- | ----------------------------------------- |
-| [`spec.md`](spec.md)                               | Canonical behavioural specification.      |
+| [`spec/index.md`](spec/index.md)                               | Canonical behavioural specification.      |
 | [`docs/usage/index.md`](docs/usage/index.md)       | Tutorial-style walk-through.              |
 | [`docs/api/index.md`](docs/api/index.md)           | Full public API reference.                |
 | [`docs/checksum/index.md`](docs/checksum/index.md) | Check-digit algorithm with worked examples. |

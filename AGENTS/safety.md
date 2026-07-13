@@ -26,6 +26,15 @@ patient record somewhere.
 When writing a doc-test, an example, or a unit test, draw from those sources
 and nowhere else.
 
+**One narrow exception** — range-boundary fixtures. Testing the
+issuable-range predicate (`is_issuable_range`) requires digit arrays at the
+boundaries of the issued ranges, which necessarily lie outside the testable
+range. Such fixtures are permitted **only if** the stored tenth digit is
+deliberately chosen to make the check digit *invalid*, so the fixture cannot
+denote any real issued NHS Number (issued numbers always carry a valid check
+digit). The `ranges` test sub-module builds every such fixture through a
+helper that asserts this property; follow the same pattern.
+
 ## 2. Never weaken the check-digit validator
 
 Patient safety depends on correct check-digit validation. A weakened
@@ -35,7 +44,7 @@ Changes to `calculate_check_digit` or `validate_check_digit` require:
 
 1. A direct citation of the
    [NHS Number specification](https://en.wikipedia.org/wiki/NHS_number).
-2. A corresponding update to [`spec.md`](../spec.md), in the same change.
+2. A corresponding update to [`spec/index.md`](../spec/index.md), in the same change.
 3. New tests that cover the changed behaviour, including the boundary
    cases at `sum % 11 ∈ {0, 1}`.
 

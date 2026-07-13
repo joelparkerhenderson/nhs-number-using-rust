@@ -5,7 +5,7 @@ working in this repository.
 
 This file is the **entry point**. It is intentionally short. Drill into the
 topical guides under [`AGENTS/`](AGENTS/) for the full picture, and read
-[`spec.md`](spec.md) for the canonical specification that drives changes.
+[`spec/index.md`](spec/index.md) for the canonical specification that drives changes.
 
 ## Project snapshot
 
@@ -28,7 +28,8 @@ The documentation is layered so each reader can stop at the depth they need:
 
 ```
 index.md                   ← README (user-facing introduction)
-spec.md                    ← living spec-driven-development specification,
+spec/                      ← living spec-driven-development specification,
+                             one file per section (start at spec/index.md),
                              including the roadmap (§16) and open tasks (§17)
 AGENTS.md                  ← this file (agent entry point)
 AGENTS/
@@ -38,7 +39,7 @@ AGENTS/
 ├── safety.md              ← patient-safety constraints (NEVER invent numbers)
 ├── workflows.md           ← common cargo commands, examples, daily flow
 ├── release.md             ← versioning, llms.* regeneration, publish steps
-└── spec-driven-development.md  ← how spec.md drives changes
+└── spec-driven-development.md  ← how the spec/ files drive changes
 docs/
 ├── api/index.md           ← full public API reference
 ├── checksum/index.md      ← check-digit algorithm with worked examples
@@ -49,8 +50,9 @@ examples/                  ← runnable `cargo run --example <name>` programs
 help/releasing/            ← release checklist (mirrors AGENTS/release.md)
 ```
 
-There is **no separate** `plan.md` or `tasks.md` — both live as sections in
-`spec.md`. If a planning artefact needs a home, add a section there.
+There is **no separate** `plan.md` or `tasks.md` — both live as spec
+sections (`spec/16-roadmap.md`, `spec/17-open-tasks.md`). If a planning
+artefact needs a home, add a section there.
 
 ## Five rules that bind every change
 
@@ -63,13 +65,14 @@ topical guide.
 2. **Do not weaken the check-digit validator.** Any change to the algorithm
    requires an explicit reference to the
    [NHS Number specification](https://en.wikipedia.org/wiki/NHS_number)
-   and an update to [`spec.md`](spec.md).
+   and an update to [`spec/index.md`](spec/index.md).
 3. **Keep the public API stable.** This crate is published on crates.io; any
    breaking change needs a major-version bump per semver.
 4. **Preserve the multi-license headers.** All source files are
    multi-licensed (MIT, Apache-2.0, GPL-2.0, GPL-3.0, BSD-3-Clause).
-5. **Update `spec.md` first.** Behavioural changes — even small ones — start
-   by editing `spec.md`, then the code, then the tests. See
+5. **Update the spec first.** Behavioural changes — even small ones — start
+   by editing the matching file under `spec/`, then the code, then the
+   tests. See
    [`AGENTS/spec-driven-development.md`](AGENTS/spec-driven-development.md).
 
 ## Quick orientation for a brand-new agent
@@ -77,7 +80,7 @@ topical guide.
 If you have just been spawned with no prior context, do this in order:
 
 1. Read this file (you are here).
-2. Skim [`spec.md`](spec.md) — it is the source of truth, and §16/§17 also
+2. Skim [`spec/index.md`](spec/index.md) — it is the source of truth, and §16/§17 also
    show what work is currently in flight.
 3. Skim [`AGENTS/architecture.md`](AGENTS/architecture.md) for the layout.
 4. For any task that touches behaviour, open

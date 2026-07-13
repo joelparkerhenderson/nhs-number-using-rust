@@ -2,7 +2,7 @@
 
 Where things live in this crate and how they fit together.
 
-For the formal public API contract, read [`spec.md`](../spec.md) and
+For the formal public API contract, read [`spec/index.md`](../spec/index.md) and
 [`docs/api/index.md`](../docs/api/index.md). This file is the **map**, not
 the contract.
 
@@ -39,11 +39,13 @@ the contract.
 ├── index.md               # Crate-level README
 ├── llms.json              # Machine-readable crate docs (generated)
 ├── llms.txt               # LLM-friendly crate docs (generated)
-├── spec.md                # Living specification (spec-driven development)
+├── spec/                  # Living specification, one file per section
+│   └── index.md           #   (entry point and table of contents)
 └── src/
     ├── lib.rs             # Crate root: `NHSNumber` struct, free functions
     ├── from_str.rs        # `FromStr` parser
     ├── parse_error.rs     # `ParseError` type
+    ├── serde_string.rs    # Opt-in string-form serde wrapper
     └── testable.rs        # Testable range constants and sampler
 ```
 
@@ -51,13 +53,14 @@ the contract.
 
 | Module                      | Owns                                                                |
 | --------------------------- | ------------------------------------------------------------------- |
-| `nhs_number` (`lib.rs`)     | `NHSNumber` struct, `Display`/`Into<String>`, free functions.       |
-| `nhs_number::from_str`      | `FromStr` impl (the only parser).                                   |
-| `nhs_number::parse_error`   | The unit struct `ParseError`.                                       |
+| `nhs_number` (`lib.rs`)     | `NHSNumber` struct, `Display`/`Into<String>`, validating `Deserialize`, free functions. |
+| `nhs_number::from_str`      | `FromStr` impl (the only string parser).                            |
+| `nhs_number::parse_error`   | The unit struct `ParseError` (`Display` + `std::error::Error`).     |
+| `nhs_number::serde_string`  | `NHSNumberString` — opt-in string-form serde wrapper.               |
 | `nhs_number::testable`      | `TESTABLE_MIN`, `TESTABLE_MAX`, `TESTABLE_RANGE_INCLUSIVE`, sampler. |
 
 Each module carries a `//!` preamble that explains its role and links
-back to the relevant section of `spec.md`. Keep those preambles current
+back to the relevant section of `spec/index.md`. Keep those preambles current
 when behaviour shifts.
 
 The `testable` module is re-exported at the crate root
@@ -86,14 +89,17 @@ Methods on `NHSNumber`:
 - `NHSNumber::check_digit(&self) -> i8`
 - `NHSNumber::calculate_check_digit(&self) -> i8`
 - `NHSNumber::validate_check_digit(&self) -> bool`
+- `NHSNumber::is_issuable_range(&self) -> bool`
 - `NHSNumber::testable_random_sample() -> NHSNumber`
 
 Trait implementations:
 
 - `Display`, `Into<String>` — format as `"DDD DDD DDDD"`.
 - `FromStr` — parse `"DDDDDDDDDD"` or `"DDD DDD DDDD"`; errors as `ParseError`.
-- `Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`,
-  `Serialize`, `Deserialize`.
+- `Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `Hash`,
+  `Serialize`.
+- `Deserialize` — hand-written; same wire shape as the derive, plus digit
+  range validation (`0..=9`).
 
 Free functions on `[i8; 10]` (equivalent to the methods above):
 
@@ -101,7 +107,12 @@ Free functions on `[i8; 10]` (equivalent to the methods above):
 - `check_digit(digits) -> i8`
 - `calculate_check_digit(digits) -> i8`
 - `validate_check_digit(digits) -> bool`
+- `is_issuable_range(digits) -> bool`
 - `testable_random_sample() -> NHSNumber`
+
+The `serde_string` module adds `NHSNumberString(pub NHSNumber)` — an
+opt-in wrapper that serialises as the canonical string instead of the
+digits array.
 
 Constants in `testable`:
 

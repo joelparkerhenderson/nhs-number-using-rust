@@ -4,13 +4,15 @@
 //!
 //! - `PartialEq` + `Eq` — equality.
 //! - `PartialOrd` + `Ord` — ordering.
+//! - `Hash` — hashing, consistent with `Eq`.
 //! - `Clone` + `Copy` — cheap duplication (the struct is 10 bytes).
 //!
 //! That means an `NHSNumber` plugs straight into any standard-library API
-//! that expects a comparable, ordered, or copyable key:
+//! that expects a comparable, ordered, hashable, or copyable key:
 //!
 //! - `Vec::sort` / `Vec::sort_by_key`
 //! - `BTreeSet<NHSNumber>`, `BTreeMap<NHSNumber, V>`
+//! - `HashSet<NHSNumber>`, `HashMap<NHSNumber, V>`
 //! - `slice::binary_search`
 //!
 //! Ordering is lexicographic across the ten-element digit array. Because
@@ -25,7 +27,7 @@
 //! ```
 
 use nhs_number::NHSNumber;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::str::FromStr;
 
 fn main() {
@@ -75,7 +77,38 @@ fn main() {
         println!("  {}", n);
     }
 
-    // === 3. Sanity checks on the results ===
+    // === 3. Key a BTreeMap by NHSNumber ===
+    //
+    // `BTreeMap<NHSNumber, V>` is the natural shape for "per-patient-record
+    // bookkeeping keyed by NHS Number": lookups by number, plus iteration in
+    // numeric order for free. Here we tag each distinct number with its
+    // check-digit status — a miniature version of what a data-quality report
+    // would hold. (`HashMap<NHSNumber, V>` works too, since `NHSNumber`
+    // derives `Hash`; choose `BTreeMap` when ordered iteration matters.)
+    let statuses: BTreeMap<NHSNumber, &str> = set
+        .iter()
+        .map(|&n| {
+            let status = if n.validate_check_digit() {
+                "checksum ok"
+            } else {
+                "checksum BAD"
+            };
+            (n, status)
+        })
+        .collect();
+    println!();
+    println!("status by number (ordered by key):");
+    for (n, status) in &statuses {
+        println!("  {} — {}", n, status);
+    }
+
+    // Point lookups go through the same `Ord` the map is built on.
+    let key = NHSNumber::from_str("999 123 4560").unwrap();
+    // `999 123 4560` is the canonical sentinel fixture: its weighted sum is
+    // congruent to 1 (mod 11), so no check digit fits and validation fails.
+    assert_eq!(statuses.get(&key), Some(&"checksum BAD"));
+
+    // === 4. Sanity checks on the results ===
     //
     // After deduplication we have four distinct numbers.
     assert_eq!(set.len(), 4);

@@ -94,7 +94,7 @@ Confirm at <https://crates.io/crates/nhs-number>.
 - [ ] docs.rs has rebuilt (usually within minutes).
 - [ ] `llms.txt` and `llms.json` in the repo reflect the new version.
 - [ ] If the change is breaking, post the major-version note in
-      [`spec.md`](../spec.md) under "Compatibility".
+      [`spec/14-compatibility-and-versioning.md`](../spec/14-compatibility-and-versioning.md).
 
 ## What gets included in the published crate
 
@@ -102,7 +102,7 @@ Confirm at <https://crates.io/crates/nhs-number>.
 include = ["src/**/*", "LICENSE.md", "README.md"]
 ```
 
-So `examples/`, `docs/`, `help/`, `spec.md`, `AGENTS.md`, and `AGENTS/`
+So `examples/`, `docs/`, `help/`, `spec/`, `AGENTS.md`, and `AGENTS/`
 are **not** shipped to crates.io — they exist on GitHub only. If you add a
 new top-level file that the crate needs at install time, extend
 `include` in `Cargo.toml` to match.

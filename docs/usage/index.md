@@ -135,8 +135,12 @@ assert!(!bad.validate_check_digit());
 
 ## Testable range
 
-The NHS reserves `999 000 0000` – `999 999 9999` as a range that is valid but
+The NHS reserves `999 000 0000` – `999 999 9999` as a range that is
 guaranteed never to be issued. Use it anywhere you need sample data.
+
+Not every number in the range passes the check digit: `999 000 0000`
+(`TESTABLE_MIN`) and the rest of `999 000 000X` are invalid because their
+computed check digit is 10. See [ranges](../ranges/index.md).
 
 ```rust
 use nhs_number::testable::{TESTABLE_MIN, TESTABLE_MAX, TESTABLE_RANGE_INCLUSIVE};

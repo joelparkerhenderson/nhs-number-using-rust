@@ -101,7 +101,7 @@ call site.
 | `[0,1,2,3,4,5,6,7,8,9]`         | `012 345 6789` | Mixed digits; stored check digit 9.              |
 | `[9,4,3,4,7,6,5,9,1,9]`         | `943 476 5919` | Wikipedia checksum example; raw `∈ 1..=9`.       |
 | `[9,8,7,6,5,4,4,3,2,1]`         | `987 654 4321` | Wikipedia format example.                        |
-| `[9,9,9,0,0,0,0,0,0,0]`         | `999 000 0000` | `TESTABLE_MIN`.                                  |
+| `[9,9,9,0,0,0,0,0,0,0]`         | `999 000 0000` | `TESTABLE_MIN`; `sum % 11 == 1` → invalid.       |
 | `[9,9,9,1,0,0,0,0,0,3]`         | `999 100 0003` | Typical testable, valid by checksum.             |
 | `[9,9,9,1,0,0,0,1,0,0]`         | `999 100 0100` | Boundary: `sum % 11 == 0` → check digit 0.       |
 | `[9,9,9,1,2,3,4,5,6,0]`         | `999 123 4560` | Boundary: `sum % 11 == 1` → sentinel `10`.       |

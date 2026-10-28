@@ -30,6 +30,14 @@ This range is **never issued** to real patients. The crate exposes it via:
 - `nhs_number::testable::TESTABLE_RANGE_INCLUSIVE`,
 - `nhs_number::testable_random_sample()` (re-exported at the crate root).
 
+Membership in the testable range does **not** imply a valid check digit.
+Every number from `999 000 0000` – `999 000 0009` (including
+`TESTABLE_MIN`) has weighted sum 243, `243 % 11 == 1`, so the computed
+check digit is the sentinel `10` and `validate_check_digit` returns
+`false` for all of them (§6.5). The same holds for any other testable
+number whose first nine digits give `sum % 11 == 1`. Fixtures that must
+pass validation should be chosen with that in mind.
+
 The bounds are `LazyLock<NHSNumber>`; dereference with `*` to get the
 underlying value. `RangeInclusive::contains(&n)` is the supported
 membership check.

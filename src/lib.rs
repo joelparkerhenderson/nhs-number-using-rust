@@ -1216,6 +1216,23 @@ mod tests {
         }
 
         #[test]
+        fn sum_mod_11_eq_1_in_testable_range_minimum() {
+            // `999 000 000X` — weighted sum 243, 243 % 11 == 1, so no check
+            // digit fits. This includes `TESTABLE_MIN` (`999 000 0000`),
+            // which is therefore in the testable range but not valid.
+            let digits = [9, 9, 9, 0, 0, 0, 0, 0, 0, 0];
+            assert_eq!(crate::calculate_check_digit(digits), 10);
+            for stored in 0i8..=9 {
+                let n = NHSNumber::new([9, 9, 9, 0, 0, 0, 0, 0, 0, stored]);
+                assert!(
+                    !n.validate_check_digit(),
+                    "999 000 000{stored} must be invalid (sum % 11 == 1)"
+                );
+            }
+            assert!(!crate::testable::TESTABLE_MIN.validate_check_digit());
+        }
+
+        #[test]
         fn sum_mod_11_in_2_to_10_yields_eleven_minus_remainder() {
             // For each remainder r in 2..=10, build a digit array whose
             // weighted sum has that remainder and verify the check digit

@@ -28,12 +28,19 @@ numbers:
 
 ## Testable range
 
-Reserved for **test and demo data only** — valid by the checksum algorithm,
-but guaranteed to never be issued to a real patient:
+Reserved for **test and demo data only** — guaranteed to never be issued to a
+real patient:
 
 | Range                           | Use                                 |
 | ------------------------------- | ----------------------------------- |
 | `999 000 0000` – `999 999 9999` | Testing, demos, fixtures, seed data |
+
+> **Note:** being in this range does not make a number checksum-valid.
+> `999 000 0000` itself (`TESTABLE_MIN`) fails validation: the weighted sum of
+> `999 000 000` is 243, and `243 % 11 == 1` gives a check digit of 10, which
+> can never be stored. The same is true of every `999 000 000X`. A
+> random sample can be invalid too, so filter with `validate_check_digit` if a
+> fixture must pass (see the `NHSNumber::testable_random_sample` rustdoc).
 
 The crate exposes this range via three `LazyLock` statics in the
 [`testable`](../../src/testable.rs) module:

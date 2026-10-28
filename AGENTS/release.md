@@ -50,10 +50,13 @@ All four must be clean. Doc-tests are part of `cargo test`.
 # One-time setup if not already installed:
 cargo install rustdoc-llms
 
-rustdoc-llms
+RUSTUP_TOOLCHAIN=nightly rustdoc-llms
 cp target/doc/nhs_number.json llms.json
 cp target/doc/llms.txt llms.txt
 ```
+
+Rustdoc JSON output needs the nightly toolchain. Under stable,
+`rustdoc-llms` reports success but writes no files, and the `cp` fails.
 
 `rustdoc-llms` is deliberately **not** a dev-dependency (it has no lib
 target), so it does not appear in `Cargo.toml`.

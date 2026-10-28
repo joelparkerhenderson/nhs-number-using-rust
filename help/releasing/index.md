@@ -29,10 +29,13 @@ cargo install rustdoc-llms
 Then regenerate the LLM-friendly docs:
 
 ```sh
-rustdoc-llms
+RUSTUP_TOOLCHAIN=nightly rustdoc-llms
 cp target/doc/nhs_number.json llms.json
 cp target/doc/llms.txt llms.txt
 ```
+
+Rustdoc JSON output needs the nightly toolchain. Under stable,
+`rustdoc-llms` reports success but writes no files, and the `cp` fails.
 
 ## Commit
 

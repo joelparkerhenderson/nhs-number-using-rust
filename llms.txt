@@ -1,8 +1,8 @@
 # Crate Documentation
 
-**Version:** 2.0.0
+**Version:** 2.0.1
 
-**Format Version:** 57
+**Format Version:** 61
 
 # Module `nhs_number`
 
@@ -292,7 +292,7 @@ pub struct ParseError;
 
 - **PartialEq**
   - ```rust
-    fn eq(self: &Self, other: &ParseError) -> bool { /* ... */ }
+    fn eq(self: &Self, other: &Self) -> bool { /* ... */ }
     ```
 
 - **RefUnwindSafe**
@@ -306,7 +306,7 @@ pub struct ParseError;
 
 - **TryFrom**
   - ```rust
-    fn try_from(value: U) -> Result<T, <T as TryFrom<U>>::Error> { /* ... */ }
+    fn try_from(value: U) -> Result<T, never> { /* ... */ }
     ```
 
 - **TryInto**
@@ -437,7 +437,7 @@ pub struct NHSNumberString(pub crate::NHSNumber);
 
 - **Clone**
   - ```rust
-    fn clone(self: &Self) -> NHSNumberString { /* ... */ }
+    fn clone(self: &Self) -> Self { /* ... */ }
     ```
 
 - **CloneToUninit**
@@ -498,17 +498,17 @@ where
 
 - **Ord**
   - ```rust
-    fn cmp(self: &Self, other: &NHSNumberString) -> $crate::cmp::Ordering { /* ... */ }
+    fn cmp(self: &Self, other: &Self) -> $crate::cmp::Ordering { /* ... */ }
     ```
 
 - **PartialEq**
   - ```rust
-    fn eq(self: &Self, other: &NHSNumberString) -> bool { /* ... */ }
+    fn eq(self: &Self, other: &Self) -> bool { /* ... */ }
     ```
 
 - **PartialOrd**
   - ```rust
-    fn partial_cmp(self: &Self, other: &NHSNumberString) -> $crate::option::Option<$crate::cmp::Ordering> { /* ... */ }
+    fn partial_cmp(self: &Self, other: &Self) -> $crate::option::Option<$crate::cmp::Ordering> { /* ... */ }
     ```
 
 - **RefUnwindSafe**
@@ -538,7 +538,7 @@ where
 
 - **TryFrom**
   - ```rust
-    fn try_from(value: U) -> Result<T, <T as TryFrom<U>>::Error> { /* ... */ }
+    fn try_from(value: U) -> Result<T, never> { /* ... */ }
     ```
 
 - **TryInto**
@@ -597,7 +597,7 @@ pub mod testable { /* ... */ }
 
 **Attributes:**
 
-- `Other("#[allow(dead_code)]")`
+- `Other("#[attr = LintCheck([LintCheck {lint_name: \"dead_code\", kind: Allow}])]")`
 
 Return a random [`NHSNumber`] in the testable range.
 
@@ -644,7 +644,7 @@ pub fn testable_random_sample() -> crate::NHSNumber { /* ... */ }
 
 **Attributes:**
 
-- `Other("#[allow(dead_code)]")`
+- `Other("#[attr = LintCheck([LintCheck {lint_name: \"dead_code\", kind: Allow}])]")`
 
 Inclusive lower bound of the testable NHS Number range — `999 000 0000`.
 
@@ -675,7 +675,7 @@ pub static TESTABLE_MIN: std::sync::LazyLock<crate::NHSNumber> = _;
 
 **Attributes:**
 
-- `Other("#[allow(dead_code)]")`
+- `Other("#[attr = LintCheck([LintCheck {lint_name: \"dead_code\", kind: Allow}])]")`
 
 Inclusive upper bound of the testable NHS Number range — `999 999 9999`.
 
@@ -707,7 +707,7 @@ pub static TESTABLE_MAX: std::sync::LazyLock<crate::NHSNumber> = _;
 
 **Attributes:**
 
-- `Other("#[allow(dead_code)]")`
+- `Other("#[attr = LintCheck([LintCheck {lint_name: \"dead_code\", kind: Allow}])]")`
 
 The inclusive testable range, `[TESTABLE_MIN, TESTABLE_MAX]`.
 
@@ -878,7 +878,7 @@ pub struct NHSNumber {
 
 - **Clone**
   - ```rust
-    fn clone(self: &Self) -> NHSNumber { /* ... */ }
+    fn clone(self: &Self) -> Self { /* ... */ }
     ```
 
 - **CloneToUninit**
@@ -943,24 +943,24 @@ where
 
 - **Ord**
   - ```rust
-    fn cmp(self: &Self, other: &NHSNumber) -> $crate::cmp::Ordering { /* ... */ }
+    fn cmp(self: &Self, other: &Self) -> $crate::cmp::Ordering { /* ... */ }
     ```
 
 - **PartialEq**
   - ```rust
-    fn eq(self: &Self, other: &NHSNumber) -> bool { /* ... */ }
+    fn eq(self: &Self, other: &Self) -> bool { /* ... */ }
     ```
 
 - **PartialOrd**
   - ```rust
-    fn partial_cmp(self: &Self, other: &NHSNumber) -> $crate::option::Option<$crate::cmp::Ordering> { /* ... */ }
+    fn partial_cmp(self: &Self, other: &Self) -> $crate::option::Option<$crate::cmp::Ordering> { /* ... */ }
     ```
 
 - **RefUnwindSafe**
 - **Send**
 - **Serialize**
   - ```rust
-    fn serialize<__S>(self: &Self, __serializer: __S) -> _serde::__private228::Result<<__S as >::Ok, <__S as >::Error>
+    fn serialize<__S>(self: &Self, __serializer: __S) -> _serde::__private229::Result<<__S as >::Ok, <__S as >::Error>
 where
     __S: _serde::Serializer { /* ... */ }
     ```
@@ -983,7 +983,7 @@ where
 
 - **TryFrom**
   - ```rust
-    fn try_from(value: U) -> Result<T, <T as TryFrom<U>>::Error> { /* ... */ }
+    fn try_from(value: U) -> Result<T, never> { /* ... */ }
     ```
 
 - **TryInto**
@@ -1000,7 +1000,7 @@ where
 
 **Attributes:**
 
-- `Other("#[allow(dead_code)]")`
+- `Other("#[attr = LintCheck([LintCheck {lint_name: \"dead_code\", kind: Allow}])]")`
 
 Format a ten-digit array as the canonical `"DDD DDD DDDD"` string.
 
@@ -1033,7 +1033,7 @@ pub fn format(digits: [i8; 10]) -> String { /* ... */ }
 
 **Attributes:**
 
-- `Other("#[allow(dead_code)]")`
+- `Other("#[attr = LintCheck([LintCheck {lint_name: \"dead_code\", kind: Allow}])]")`
 
 Return the **stored** tenth digit of a ten-digit array — the check
 digit as it appears in the input.
@@ -1068,7 +1068,7 @@ pub fn check_digit(digits: [i8; 10]) -> i8 { /* ... */ }
 
 **Attributes:**
 
-- `Other("#[allow(dead_code)]")`
+- `Other("#[attr = LintCheck([LintCheck {lint_name: \"dead_code\", kind: Allow}])]")`
 
 Compute the check digit for a ten-digit array using the NHS modulo-11
 algorithm (see `spec/06-check-digit-algorithm.md` §6).
@@ -1135,7 +1135,7 @@ pub fn calculate_check_digit(digits: [i8; 10]) -> i8 { /* ... */ }
 
 **Attributes:**
 
-- `Other("#[allow(dead_code)]")`
+- `Other("#[attr = LintCheck([LintCheck {lint_name: \"dead_code\", kind: Allow}])]")`
 
 Return `true` iff the stored tenth digit equals the one
 [`calculate_check_digit`] would compute from the first nine.
@@ -1179,7 +1179,7 @@ pub fn validate_check_digit(digits: [i8; 10]) -> bool { /* ... */ }
 
 **Attributes:**
 
-- `Other("#[allow(dead_code)]")`
+- `Other("#[attr = LintCheck([LintCheck {lint_name: \"dead_code\", kind: Allow}])]")`
 
 Return `true` iff the first nine digits of a ten-digit array fall
 inside a range the NHS currently issues, net of the ranges reserved

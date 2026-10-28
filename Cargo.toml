@@ -1,6 +1,6 @@
 [package]
 name = "nhs-number"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2024"
 authors = ["Joel Parker Henderson <joel@joelparkerhenderson.com>"]
 description = "United Kingdom (UK) National Health Service (NHS) Number — parse, format, and validate the ten-digit identifier used by UK NHS England, UK NHS Scotland, UK NHS Wales, and UK NHS Isle of Man."
